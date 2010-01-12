@@ -24,14 +24,14 @@ keymap:
     db      "77&&",          "88**",         "99((",        "00))" 
     db      "--__",          "==++",         0,0,0,0,       0,0,0,0  ; BCK  tab
     db      "qQQq",          "wWWw",         "eEEe",        "rRRr" 
-    db      "tTTt",          "yyyy",         "uUUu",        "iIIi" 
+    db      "tTTt",          "yYYy",         "uUUu",        "iIIi" 
     db      "oOOo",          "pPPp",         "[[{{",        "]]}}" 
     db      0,0,0,0,         0,0,0,0,        "aAAa",        "sSSs"   ; ENTER CTL
 # Scancode 32
     db      "dDDd",          "fFFf",         "gGGg",        "hHHh" 
     db      "jJJj",          "kKKk",         "lLLl",        ";;::" 
     db    "''",'"','"',      "``~~",         0,0,0,0,     '\','\',"||"  ; lshift
-    db      "zZZz",          "xxxx",         "cCCc",        "vVVv" 
+    db      "zZZz",          "xXXx",         "cCCc",        "vVVv" 
     db      "bBBb",          "nNNn",         "mMMm",        ",,<<" 
     db      "..>>",          "//??",         0,0,0,0,       0,0,0,0  ; rshift PtScr
     db      0,0,0,0,         "    ",         0,0,0,0,       0,0,0,0  ; ALt CpsLck F1
