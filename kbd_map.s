@@ -22,11 +22,11 @@ keymap:
     db      0,0,0,0,         0,0,0,0,        "11!!",        "22@@",  ; -- ESC
     db      "33##",          "44$$",         "55%%",        "66^^" 
     db      "77&&",          "88**",         "99((",        "00))" 
-    db      "--__",          "==++",         0,0,0,0,       0,0,0,0  ; BCK  tab
+    db      "--__",          "==++",         8,8,8,8,       9,9,9,9  ; BCK  tab
     db      "qQQq",          "wWWw",         "eEEe",        "rRRr" 
     db      "tTTt",          "yYYy",         "uUUu",        "iIIi" 
     db      "oOOo",          "pPPp",         "[[{{",        "]]}}" 
-    db      0,0,0,0,         0,0,0,0,        "aAAa",        "sSSs"   ; ENTER CTL
+    db      13,13,13,13,     0,0,0,0,        "aAAa",        "sSSs"   ; ENTER CTL
 # Scancode 32
     db      "dDDd",          "fFFf",         "gGGg",        "hHHh" 
     db      "jJJj",          "kKKk",         "lLLl",        ";;::" 
