@@ -107,7 +107,7 @@ defvar key_status, key_status, 0, 0
 : sc>c, scancode2char, 0
     dup _key_down? if
         4 *   key_status @  +  keymap + c@
-    else 0 then
+    else drop 0 then
 ;
 
 ; function: getchar
