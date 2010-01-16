@@ -12,7 +12,7 @@
 
 [BITS 32]
 : print_scancode, print_scancode, 0
-    kbd_scancode intprint spc
+    kbd_scancode dup intprint spc sc>c spc  emit cr
 ;
 
 defvar tic_count, tic_count, 0, 0
@@ -68,7 +68,7 @@ defcode test_irq, test_irq, 0
     0x10100E print_idtentry
     0x101016 print_idtentry
     [`] print_scancode 33 register_isr_handler
-    [`] print_tic      32 register_isr_handler
+    ;[`] print_tic      32 register_isr_handler
 ;
 
 section .rodata
