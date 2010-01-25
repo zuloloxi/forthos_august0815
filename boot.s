@@ -42,6 +42,7 @@ global module
 ; function: start
 ;   Entry point for grub.
 ;| see http://lowlevel.brainsware.org/wiki/index.php/Multiboot for more info.
+;| thanks taljeth (lowlevel-forum) for tip
 start:
         mov dword [module],ebx             ; Save adress-pointer of grub_header
         push ebx
