@@ -38,15 +38,17 @@ mboot:
 global start                    ; Grub entry point.
 extern main                     ; This is the entry point of our C code
 extern gdt_flush
-
+global module
 ; function: start
 ;   Entry point for grub.
+;| see http://lowlevel.brainsware.org/wiki/index.php/Multiboot for more info.
 start:
-        push    ebx             ; Load multiboot header location
+        mov dword [module],ebx             ; Save adress-pointer of grub_header
+        push ebx
         cli                     ; Disable interrupts.
         call gdt_flush          ; Initialize GDT
         call main               ; call our main() function.
         jmp $                   ; Enter an infinite loop, to stop the processor
                                 ; executing whatever rubbish is in the memory
                                 ; after our kernel! 
-
+module: dd 0
