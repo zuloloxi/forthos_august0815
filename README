@@ -19,6 +19,11 @@ CURRENT STATUS:
 In this point, forthos initialize the GDT, IDT and PIT. It has drivers for 
 text video and keyboard.
 
+Grub is used to load an simple text file as an 'module' to ram. 
+(see http://lowlevel.brainsware.org/wiki/index.php/Multiboot)
+So at the time grub passes the control to main, in ebx the pointer to Multiboot-header is stored in var > module.
+The var_GRUB holds the adress of the header simply adding 0x18 we get pointer to 'mbs_mods_addr '.
+There is the beginning and end of the "module". Now simply show it ! 
 
 REQUIREMENTS:
 =============
