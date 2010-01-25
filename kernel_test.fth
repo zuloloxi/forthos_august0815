@@ -9,7 +9,7 @@
 %include "kernel_video.h"
 %include "kernel_kbd.h"
 %include "irq.h"
-%include "kernel_debug.h" 
+
 
 [BITS 32]
 : print_scancode, print_scancode, 0
