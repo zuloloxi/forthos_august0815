@@ -63,7 +63,7 @@ defcode test_irq, test_irq, 0
 : test_invoke, test_invoke, 0
     _invoke_addr execute
 ;
-defvar text_buff, text_buff, 0 ,0
+
 : test_poll, test_poll, 0
  1
 	begin

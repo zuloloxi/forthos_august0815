@@ -47,3 +47,17 @@ return_stack:
             resb RETURN_STACK_SIZE
 return_stack_top:
 
+align 4096
+BUFFER_SIZE equ 4096
+buffer:
+	resb BUFFER_SIZE
+
+align 4096
+pad: 
+	resb 1024
+align 1024	
+point_HERE: resb 2048
+
+point: resb 363748
+global top
+top: resb 0

@@ -74,6 +74,18 @@ defvar S0, S0, 0, 0
 ; The current base for printing and reading numbers.
 defvar BASE, BASE, 0, 10
 
+extern top
+; var: TOPMEM
+defvar TOPMEM, TOPMEM, 0, top ; SYSCALL0 must be last in built-in dictionary
+
+; var: NOECHO
+defvar NOECHO, NOECHO, 0, 1 ; Flag if message is printed when compiling is succsesfull ??
+
+; var: text_buff
+defvar text_buff, text_buff, 0 ,0
+
+; var: PPRT (pointer_to_print) 
+defvar PPTR, PPTR, 0 , 0
 
 ; ============================================================================
 ;       Virtual Machine constants
