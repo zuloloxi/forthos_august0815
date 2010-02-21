@@ -656,3 +656,4 @@ defcode execute, execute, 0
         pop eax
         jmp [eax]
 
+global name_execute

@@ -8,6 +8,10 @@
 %include "kernel_words.h"
 %include "kernel_video.h"
 
+extern name_hexprint
+%undef OLDLINK
+%xdefine LINK name_hexprint
+
 extern keymap
 %define keymap keymap
 
@@ -125,3 +129,4 @@ defvar key_status, key_status, 0, 0
     until
 ;
 
+global name_getchar

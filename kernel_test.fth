@@ -10,6 +10,9 @@
 %include "kernel_kbd.h"
 %include "irq.h"
 
+extern name_getchar
+%undef OLDLINK
+%xdefine LINK name_getchar
 
 [BITS 32]
 : print_scancode, print_scancode, 0

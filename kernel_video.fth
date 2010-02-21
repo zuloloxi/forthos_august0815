@@ -8,6 +8,10 @@
 %include "forth.h"
 %include "kernel_words.h"
 
+extern name_execute
+%undef OLDLINK
+%xdefine LINK name_execute
+
 [BITS 32]
 section .text
 
@@ -258,3 +262,4 @@ defcode c>cw, char_to_charword, 0
 ;
 
 
+global name_hexprint
