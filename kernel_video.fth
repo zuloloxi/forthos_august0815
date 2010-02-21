@@ -152,6 +152,18 @@ defcode bg, bg, 0
     screen_scroll_
 ;
 
+; function: cursor_forward
+;   Moves the cursor forward.
+;
+; Stack:
+;   --
+: cursor_back, cursor_back, 0
+    -1 cursor_pos_x @ + 80 /mod
+    cursor_pos_y +!
+    cursor_pos_x !
+    screen_scroll_
+;
+
 ; function: c>cw, char_to_charword
 ;   Converts a character in a charword.
 ;

@@ -64,6 +64,42 @@ defcode test_irq, test_irq, 0
     _invoke_addr execute
 ;
 
+; function: ZEILE  ; einlesen einer Zeile bis CR   TESTED_OK
+;
+; edi  push base address
+; ecx		 push length
+;zeile_buffer:  ist 1024 byte lang
+: zeile, zeile, 0
+       1
+        begin
+        while
+        getchar dup  0x09 	;TAB
+        =
+        if 
+        	drop tab ;branch repn
+        then
+        dup  0x08 	;BS backspace
+        =
+        if 
+        	drop
+       		cursor_back 			; del the char
+       		' ' emit  cursor_back   ; the position on back !
+       		1-					   	; position of text_buffer(input) on back 
+       		;branch repn
+        then        
+        dup  0x0D =
+        if
+        	drop 0x20 swap  dup incr rot c!
+                 0	  swap  dup incr rot c!
+            drop
+        	exit
+        then
+        dup emit swap  dup incr rot c!
+ 		1
+	    repeat
+;
+text_buffer: times 1024 db 0
+  
 : test_poll, test_poll, 0
  1
 	begin
@@ -85,7 +121,7 @@ defcode test_irq, test_irq, 0
 		 0				; ( --  0 text_buffer+2 text_buffer+2 )
 		 c!				; ( -- text_buffer+2 )
 		 ;.S cr
-		 text_buff !
+		 TEXT_BUFF !
 		 exit
 		 then 
 						; ( -- char text_buffer )
@@ -401,10 +437,28 @@ section .data			; NB: easier to fit in the .data section
 ptr_buff: times 256 db 0
 		
 section .text
+
 : quit, quit, 0
-  R0  rsp!
-			ZEIL  qstack
-        	branch -12
+  R0  rsp! 
+  ZEIL  qstack branch -12 ; loops forever
+;
+ 
+; function: TELL   rewrite it !!!! still for linux
+: tell, tell, 0
+	drop printcstring ;printt
+;
+
+; function: echooff   TESTED_OK
+: echooff, echooff, 0
+			0 NOECHO !
+;	
+; function: echoon   TESTED_OK
+: echoon, echoon, 0
+			0 NOECHO !
+;
+; function: PRESSKEY   TESTED_OK
+: presskey, presskey, 0
+      		key_press printcstring tab '!' emit getchar clear
 ;
   		   
 ;defcode: INTERPRET    better now 
@@ -488,19 +542,156 @@ defcode char, char, 0
  	  loop
  	  drop
 ; 
+
+: u., udot, 0
+	BASE @ /mod	?dup
+	if 				;( if quotient <> 0 then )
+	 	 udot
+	else
+	then
+		dup 10 <
+		if
+	 		 '0'  ;(decimal digits 0..9 )
+		else
+			10 - 'A'
+	 	then
+	 	+ emit	
+;
+
+: .s, dots, 0
+	'>' emit dsp@
+	begin
+		dup S0 @ <
+	while
+		dup @ udot spc 4+
+	repeat
+	drop '<' emit
+;
+
+; function: inter
+; ( -- )    
+;| the interpreter loop
+;| tests for  'INTERPRET' errors and shows the result of interpret/compile   
+: inter, inter,0	
+ 			0 END_OF_LINE !
+			NOECHO @ 0<>
+			if
+				cr
+			then
+		    interpret
+			END_OF_LINE @ 0<>   ; endof line Interprt was OK
+ 			if
+				NOECHO @ 0<>
+				if
+					cr ok printcstring cr  	
+			 	then
+			 	0  dup END_OF_LINE ! PARS_ERROR !
+				 ;clear Error_flag
+           		 ;clear End_of_Line fla
+            	exit
+			then	 
+			PARS_ERROR @ 0<>     ; error in einput stream
+ 			if  	
+				cr 10 ink text_buffer printcstring	
+				cr 12 ink errmsg      printcstring 
+			 	PPTR_LAST @ 10  printt cr
+			 	15 ink presskey
+				0  dup END_OF_LINE ! PARS_ERROR ! exit
+           	then	 
+			PPTR @  PPTR_LAST !
+			;branch inter1
+;		
+
+; function: linecopy 
+; ( -- )
+;| reads from source until ';' char is found in stream
+;| replace in the stream
+;| 'lf'  with SPACE
+;| 'tab' with SPACE
+;| if ';' is found then 'CR' an 0 is added (to text_buffer) 
+;| this simulates an keyboard input with 'CR' , so the interpreter will
+;| execute  the line   
+: linecopy, linecopy, 0
+	dup c@ 	 ; IF LF is the first char
+	0x0a =
+	if 
+	;branch lf			; goto lf	
+	then
+	
+	begin
+	dup c@ dup 0x3b <>
+	while
+	 dup 0x0a =  ; wenn LF dann SPACE
+	 if 
+	  drop 0x20
+	 then
+	 dup 0x09 =   ; wenn TAB dann SPACE
+	 if 
+	  drop 0x20
+	 then
+	 PPTR @ c! 1 PPTR +! 1+
+	repeat
+	0x3b PPTR @ c! 1 PPTR +! 1+
+	FILP !
+	
+	0xd PPTR @ c! 1 PPTR +1 1+
+	FILP !
+	0x0 PPTR @ c! ; ENDING 0 for PRINTSTRING
+;
+	
+; function: interforth
+; ( -- )
+;| executes the loaded ( via GRUB) file
+: interforth, interforth, 0
+	echooff
+	SRC @    	; source
+	FILP !		; file_position_pointer
+	text_buffer	; 
+	PPTR !		; input_line_source_pointer
+1	
+	begin	
+	while
+    FILP @	
+    linecopy
+	text_buffer PPTR !
+ 	NOECHO @ 0<>
+	if
+	 cr cr text_buffer printcstring
+	then
+	
+	inter
+    text_buffer dup PPTR_LAST ! ; remember the last word witch compiled without error
+	PPTR !
+    
+	1
+	FILP +1 
+	FILP @		; is next char = 0
+	c@ 		; then it is  EOF
+	?dup
+	if 
+	 	-1
+		FILP		; no , go for next line_input
+		+!
+	 	;dd DROP
+	else
+	 ;dd DROP
+	 exit		; yes , EOF 
+	then
+	;dd DROP
+	1
+	repeat
+;
+
 ; function: ZEIL
 ; ( -- )
 ;| reads stream of char to text_buffer
 ;| until 'CR' is hit 
 : ZEIL, ZEIL, 0
-       	text_buffer dup  text_buff ! test_poll ; zeile
-       	; dd zeilemit 
+       	text_buffer dup  TEXT_BUFF !  zeile ; test_poll ;
+        '*' emit ;zeilemit 
         ; inter
-        text_buffer ;dup 
-        ;dd pptr_last
-        ;dd store
-        PPTR !
-        ;  clsstack drop
+        text_buffer dup PPTR_LAST ! PPTR !
+        ;drop ;  clsstack drop
 ;
 
 : ?stack, qstack, 0
@@ -513,8 +704,19 @@ defcode char, char, 0
 		then
 ;
 
-; for test 
-defvar GRUB, GRUB, 0, 0
+: compile, compile, 0
+ cr cr  
+ 'C' emit     
+ GRUB  @   0x14 +  @ 
+ GRUB  @   0x18 +   @ 
+ dup @ swap 4+ @   swap
+ 2dup -  -rot SRC_END ! 0  SRC_END c! ; Store 0 (EOF ) TO  SRC_END
+ swap dup SRC ! swap 2drop drop ;interforth    
+ text_buffer TEXT_BUFF ! 1 TEXT_BUFF @ c! ; init
+ S0 @ dsp! 
+;
+ 	
+
 extern module
 ; function: main
 ;   The first forth word executed by the kernel.
@@ -525,24 +727,24 @@ extern module
     0x101016 print_idtentry
     ;[`] print_scancode 33 register_isr_handler
     ;[`] print_tic      32 register_isr_handler
-     cr cr
- GRUB  @   0x14 +  @ 
- GRUB  @   0x18 +   @ 
- dup @ swap 4+ @   swap
- 2dup -  rot drop  printt
- 
-    text_buffer text_buff ! 1 text_buff @ c! ; init
-    text_buff @ 
- 	test_poll
- 	
-	tstout
- 	branch -12
+    compile
+	quit
+ 	stop
 ;
 
 section .rodata
 hello:      db "hello, world", 0
 fault:      db "A fault happened", 0
 tic_msg:    db "The clock tics", 0
+ok: 			db '  OK ... ' ,0
+key_press: 		db '   PRESS ANY KEY  .... ' , 0
+outputmes: 		db 'Words of forth' , 0
+inputloop:		db 'Enter  words' , 0
+errmsg: 		db 'PARSE ERROR: AT ->' ,0
+gef: 			db 'GEFUNDEN' , 0
+ngef: 			db 'NICHT IN TABELLE' , 0
+stackmes:		db 'STACK> ', 0
+
 stackerr:		db ' STACK undeflow .. reset STACK !' ,0
-text_buffer: times 1024 db 0
-interpret_is_lit db 0     
+
+interpret_is_lit: db 0     

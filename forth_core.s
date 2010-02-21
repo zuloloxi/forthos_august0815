@@ -82,10 +82,16 @@ defvar TOPMEM, TOPMEM, 0, top ; SYSCALL0 must be last in built-in dictionary
 defvar NOECHO, NOECHO, 0, 1 ; Flag if message is printed when compiling is succsesfull ??
 
 ; var: text_buff
-defvar text_buff, text_buff, 0 ,0
+defvar TEXT_BUFF, TEXT_BUFF, 0 ,0
 
 ; var: PPRT (pointer_to_print) 
 defvar PPTR, PPTR, 0 , 0
+defvar PPTR_LAST, PPTR_LAST, 0 , 0
+defvar SRC, SRC, 0 , 0
+defvar SRC_END, SRC_END, 0 , 0
+defvar FILP, FILP, 0 , 0
+defvar GRUB, GRUB, 0, 0
+
 
 ; ============================================================================
 ;       Virtual Machine constants
@@ -94,9 +100,10 @@ defvar PPTR, PPTR, 0 , 0
 ; The current version of this FORTH.
 defconst VERSION, VERSION, 0, 1
 
+extern return_stack_top
 ; const: R0          
 ; The address of the top of the return stack.
-defconst R0, R0, 0, 2
+defconst R0, R0, 0, return_stack_top
 
 ; const: DOCOL       
 ; Pointer to DOCOL.

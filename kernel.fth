@@ -47,6 +47,7 @@ align 4096
             RETURN_STACK_SIZE equ 8192
 return_stack:
             resb RETURN_STACK_SIZE
+global return_stack_top
 return_stack_top:
 
 align 4096
