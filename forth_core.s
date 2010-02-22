@@ -62,9 +62,10 @@ defvar STATE, STATE, 0, 0
 ; Points to the next free byte of memory.
 defvar HERE, HERE, 0, 0
 
+extern last_word
 ; var LAtest       
 ; Points to the newset  word in the dictionary.
-defvar LATEST, LATEST, 0, main ; SySCALL0 must be last in built-in dictionary
+defvar LATEST, LATEST, 0, last_word; SySCALL0 must be last in built-in dictionary
 
 ; var: S0          
 ; Stores the address of the top of the parameter stack.

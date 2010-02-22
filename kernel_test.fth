@@ -89,53 +89,17 @@ defcode test_irq, test_irq, 0
         then        
         dup  0x0D =
         if
-        	drop 0x20 swap  dup incr rot c!
-                 0	  swap  dup incr rot c!
+        	drop 0x20 swap dup 1+ -rot c!
+                 0	  swap  dup 1+ -rot c!
             drop
         	exit
-        then
-        dup emit swap  dup incr rot c!
+        then 
+        dup emit swap dup 1+ -rot c! 
  		1
 	    repeat
 ;
 text_buffer: times 1024 db 0
   
-: test_poll, test_poll, 0
- 1
-	begin
-    while    ; ( -- 1 text_buffer )
-   	getchar             ; ( -- char text_buffer )
-	dup emit			; verdoppeln von char und ausgabe ( -- char text_buffer )
-	dup					; ( -- char char text_buffer )
-	0x0D 				; ( -- 0x0D char char text_buffer )
-	= 					; ( -- 1/0  char text_buffer )
-	if 	
-		 dup emit 		;  ( -- char text_buffer )
-		 swap			; ( -- text_buffer char )
-	     dup 			; ( -- text_buffer text_buffer char )
-		 1+				; ( -- text_buffer+1 text_buffer char )
-		 rot   			; ( -- text_buffer char text_buffer+1 )
-   	 	 c!				; ( -- text_buffer+1 )
-		 1+				; ( -- text_buffer+2 )
-		 dup			; ( --  text_buffer+2 text_buffer+2 )
-		 0				; ( --  0 text_buffer+2 text_buffer+2 )
-		 c!				; ( -- text_buffer+2 )
-		 ;.S cr
-		 TEXT_BUFF !
-		 exit
-		 then 
-						; ( -- char text_buffer )
-	swap				; ( -- text_buffer char )
-	dup 				; ( -- text_buffer text_buffer char )
-	1+					; ( -- text_buffer+1 text_buffer char )
-	-rot   				; ( -- text_buffer char text_buffer+1 )
-	c!					; ( -- text_buffer+1 )
-    ;.S cr 
-    1
-    ;.S cr
-    repeat
-    					; ( -- text_buffer )
-;
 : tstout, tstout, 0
 	text_buffer dup
 	cr printcstring cr
@@ -578,7 +542,10 @@ defcode char, char, 0
 			if
 				cr
 			then
-		    interpret
+			1
+			begin
+			while
+			interpret
 			END_OF_LINE @ 0<>   ; endof line Interprt was OK
  			if
 				NOECHO @ 0<>
@@ -599,8 +566,9 @@ defcode char, char, 0
 				0  dup END_OF_LINE ! PARS_ERROR ! exit
            	then	 
 			PPTR @  PPTR_LAST !
-			;branch inter1
-;		
+			1
+			repeat
+;			
 
 ; function: linecopy 
 ; ( -- )
@@ -610,7 +578,13 @@ defcode char, char, 0
 ;| 'tab' with SPACE
 ;| if ';' is found then 'CR' an 0 is added (to text_buffer) 
 ;| this simulates an keyboard input with 'CR' , so the interpreter will
-;| execute  the line   
+;| execute  the line  
+: ->PPTR, tPPRT, 0
+	PPTR @ c! 1 PPTR +! 1+
+;
+: endln, endln, 0
+	0x3b ->PPTR FILP ! 0xd ->PPTR FILP ! 0x0 PPTR @ c!
+; 
 : linecopy, linecopy, 0
 	dup c@ 	 ; IF LF is the first char
 	0x0a =
@@ -629,14 +603,9 @@ defcode char, char, 0
 	 if 
 	  drop 0x20
 	 then
-	 PPTR @ c! 1 PPTR +! 1+
+	 ->PPTR
 	repeat
-	0x3b PPTR @ c! 1 PPTR +! 1+
-	FILP !
-	
-	0xd PPTR @ c! 1 PPTR +1 1+
-	FILP !
-	0x0 PPTR @ c! ; ENDING 0 for PRINTSTRING
+	endln ; CR and 0 -> ENDING 0 for PRINTSTRING
 ;
 	
 ; function: interforth
@@ -681,15 +650,18 @@ defcode char, char, 0
 	1
 	repeat
 ;
-
+: zeilemit, zeilemit, 0
+  	cr 10 0 do '-'emit loop cr '>'emit text_buffer printcstring '<' emit 
+;
+ 			
 ; function: ZEIL
 ; ( -- )
 ;| reads stream of char to text_buffer
 ;| until 'CR' is hit 
 : ZEIL, ZEIL, 0
-       	text_buffer dup  TEXT_BUFF !  zeile ; test_poll ;
-        '*' emit ;zeilemit 
-        ; inter
+       	text_buffer dup  TEXT_BUFF ! zeile  ;test_poll ;
+        text_buffer zeilemit 
+        inter
         text_buffer dup PPTR_LAST ! PPTR !
         ;drop ;  clsstack drop
 ;
@@ -708,14 +680,15 @@ defcode char, char, 0
  cr cr  
  'C' emit     
  GRUB  @   0x14 +  @ 
- GRUB  @   0x18 +   @ 
+ GRUB  @   0x18 +  @ 
  dup @ swap 4+ @   swap
  2dup -  -rot SRC_END ! 0  SRC_END c! ; Store 0 (EOF ) TO  SRC_END
  swap dup SRC ! swap 2drop drop ;interforth    
  text_buffer TEXT_BUFF ! 1 TEXT_BUFF @ c! ; init
  S0 @ dsp! 
+ text_buffer dup  PPTR_LAST ! PPTR !
 ;
- 	
+
 
 extern module
 ; function: main
@@ -731,7 +704,11 @@ extern module
 	quit
  	stop
 ;
-
+global last_word
+last_word:
+: tst, tst,0
+ cr 10 0 do '-'emit loop cr
+; 
 section .rodata
 hello:      db "hello, world", 0
 fault:      db "A fault happened", 0
