@@ -152,8 +152,8 @@ defcode bg, bg, 0
     screen_scroll_
 ;
 
-; function: cursor_forward
-;   Moves the cursor forward.
+; function: cursor_back
+;   Moves the cursor back.
 ;
 ; Stack:
 ;   --

@@ -220,12 +220,12 @@
 ;   The DO part of do-loop structure.
 ; 
 ;  e.g.:
-;    |        litN 80*25              ; for i = 0 to 80*25
-;    |        litN 0                  ;
-;    |        do
-;    |             litN ' '           ;   emit ' '
-;    |             dd emit            ;
-;    |        loop
+; |        litn 80*25              ; for i = 0 to 80*25
+; |        litn 0                  ;
+; |        do
+; |             litn ' '           ;   emit ' '
+; |             dd emit            ;
+; |        loop
 %macro do 0
         %push do_loop
     %$loop:

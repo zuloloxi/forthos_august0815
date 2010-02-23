@@ -66,11 +66,15 @@ defcode test_irq, test_irq, 0
 
 ; function: ZEILE  ; einlesen einer Zeile bis CR   TESTED_OK
 ;
-; edi  push base address
-; ecx		 push length
-;zeile_buffer:  ist 1024 byte lang
+; Stack:
+; address_of_text_buffer  -- 
+; zeile_buffer:  ist 1024 byte lang
+; ( char text_buffer text_buffer -- text_buffer )
+: store_in_buffer, store_in_buffer,0
+	swap dup 1+ -rot c!
+;
 : zeile, zeile, 0
-       1
+        1
         begin
         while
         getchar dup  0x09 	;TAB
@@ -78,23 +82,24 @@ defcode test_irq, test_irq, 0
         if 
         	drop tab ;branch repn
         then
+        dup  0x0D =
+        if
+        	drop 0x20 store_in_buffer
+                 0	  store_in_buffer
+            drop  
+        	exit
+        then 
         dup  0x08 	;BS backspace
         =
         if 
         	drop
-       		cursor_back 			; del the char
-       		' ' emit  cursor_back   ; the position on back !
+       		cursor_back		; del the char
+       		0x20 emit  cursor_back   ; the position on back !
        		1-					   	; position of text_buffer(input) on back 
        		;branch repn
+		else 
+			dup emit store_in_buffer 
         then        
-        dup  0x0D =
-        if
-        	drop 0x20 swap dup 1+ -rot c!
-                 0	  swap  dup 1+ -rot c!
-            drop
-        	exit
-        then 
-        dup emit swap dup 1+ -rot c! 
  		1
 	    repeat
 ;
@@ -404,7 +409,7 @@ section .text
 
 : quit, quit, 0
   R0  rsp! 
-  ZEIL  qstack branch -12 ; loops forever
+ 1 begin while ZEIL  qstack -1 repeat ; loops forever
 ;
  
 ; function: TELL   rewrite it !!!! still for linux
@@ -422,7 +427,7 @@ section .text
 ;
 ; function: PRESSKEY   TESTED_OK
 : presskey, presskey, 0
-      		key_press printcstring tab '!' emit getchar clear
+      		key_press printcstring tab '!' emit getchar drop clear
 ;
   		   
 ;defcode: INTERPRET    better now 
@@ -544,7 +549,7 @@ defcode char, char, 0
 			then
 			1
 			begin
-			while
+			while 
 			interpret
 			END_OF_LINE @ 0<>   ; endof line Interprt was OK
  			if
@@ -653,21 +658,25 @@ defcode char, char, 0
 : zeilemit, zeilemit, 0
   	cr 10 0 do '-'emit loop cr '>'emit text_buffer printcstring '<' emit 
 ;
- 			
+: teilemit, teilemit, 0
+  	cr 10 0 do '_'emit loop cr '>'emit ptr_buff printcstring '<' emit 
+; 			
 ; function: ZEIL
 ; ( -- )
 ;| reads stream of char to text_buffer
 ;| until 'CR' is hit 
 : ZEIL, ZEIL, 0
-       	text_buffer dup  TEXT_BUFF ! zeile  ;test_poll ;
-        text_buffer zeilemit 
+       	text_buffer dup  TEXT_BUFF ! zeile 
         inter
         text_buffer dup PPTR_LAST ! PPTR !
         ;drop ;  clsstack drop
 ;
 
+: depth, depth, 0
+S0 @ dsp@ - 4-
+;
 : ?stack, qstack, 0
-		S0 @ dsp@ - 4- 0>
+		depth 0>
 		if 
 			drop
 		else
@@ -678,7 +687,6 @@ defcode char, char, 0
 
 : compile, compile, 0
  cr cr  
- 'C' emit     
  GRUB  @   0x14 +  @ 
  GRUB  @   0x18 +  @ 
  dup @ swap 4+ @   swap

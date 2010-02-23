@@ -133,6 +133,7 @@ scanner = re.Scanner([
     (r'\(\s.*\s\)',             forth_comment),
     (r';.*',                    line_comment),
     (r'\{\s.*\}',               asm_literal),
+    (r'[-+][0-9A-Fa-f]+',       literal),
     (r"'.'",                    literal),
     (r'0[xX][0-9A-Fa-f]+',      literal),
     (r'\d+\s',                  literal),
