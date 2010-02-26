@@ -527,7 +527,7 @@ defcode char, char, 0
  	  drop
 ; 
 
-: u., udot, 0
+: U., udot, 0
 	BASE @ /mod	?dup
 	if 				;( if quotient <> 0 then )
 	 	 udot
@@ -542,7 +542,7 @@ defcode char, char, 0
 	 	+ emit	
 ;
 
-: .s, dots, 0
+: .S, dots, 0
 	'>' emit dsp@
 	begin
 		dup S0 @ <
@@ -710,54 +710,6 @@ S0 @ dsp@ - 4-
  S0 @ dsp! 
  text_buffer dup  PPTR_LAST ! PPTR !
 ;
-
-: alias1, alias1, 0
-  sk1 1  header  sk2 1   find >cfa @  comma lit exit  comma LATEST @   immediate
-  t1 1  header immediate t2 1   find >cfa @  comma lit exit  comma LATEST @   immediate
-  c1 1  header immediate c2 1   find >cfa @  comma lit exit  comma LATEST @   immediate
-;     ; lit [#] DOCOL  comma	LATEST @  hidden ]
-
-: id., id., 0
-	4+		
-	dup c@		
-	0x1f and	
-
-	begin
-		dup 0>	
-	while
-		swap 1+	
-		dup c@	
-		emit	
-		swap 1-	
-	repeat
-	2drop	
-;
-: ?hidden, qhidden, 0
-	4+	
-	c@	
-	0x20 and
-;
-: ?immediate, qimmediate, 0
-	4+	
-	c@	
-	0x80 and	
-;
-
-: words, words, 0
-	LATEST @	
-	begin
-		?dup	
-	while
-		dup ?hidden 0= if	
-			dup id.		
-			spc
-		then
-		@	
-	repeat
-	cr
-;
-
-
 
 extern module
 ; function: main
