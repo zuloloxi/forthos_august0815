@@ -111,6 +111,13 @@ defvar FILP, FILP, 0 , 0
 ; pointer stored by GRUB see http://lowlevel.brainsware.org/wiki/index.php/Multiboot for more info.
 defvar GRUB, GRUB, 0, 0
 
+; var: END_OF_LINE
+; signal that the text_buffer (line) is now finished 
+defvar END_OF_LINE, END_OF_LINE, 0 , 0
+
+; var: PARS_ERROR
+; no error while interpret/compile time
+defvar PARS_ERROR, PARS_ERROR, 0 , 0
 
 ; ============================================================================
 ;       Virtual Machine constants

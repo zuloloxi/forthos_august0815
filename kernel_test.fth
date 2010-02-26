@@ -64,16 +64,22 @@ defcode test_irq, test_irq, 0
     _invoke_addr execute
 ;
 
-; function: ZEILE  ; einlesen einer Zeile bis CR   TESTED_OK
+; function: store_in_buffer
+;
+; used by read_line
+; Stack:
+; ( char text_buffer text_buffer -- text_buffer )
+
+: store_in_buffer, store_in_buffer,0
+	swap dup 1+ -rot c!
+;
+
+; function: read_line  ; einlesen einer Zeile bis CR   TESTED_OK
 ;
 ; Stack:
 ; address_of_text_buffer  -- 
 ; zeile_buffer:  ist 1024 byte lang
-; ( char text_buffer text_buffer -- text_buffer )
-: store_in_buffer, store_in_buffer,0
-	swap dup 1+ -rot c!
-;
-: zeile, zeile, 0
+: read_line, read_line, 0
         1
         begin
         while
@@ -104,7 +110,12 @@ defcode test_irq, test_irq, 0
 	    repeat
 ;
 text_buffer: times 1024 db 0
- 
+
+; function: key1
+;
+; reads the next char in text_buffer PPTR points at
+; Stack:
+;    -- char
 defcode key1,key1  ,0
 	xor eax,eax
 	call _KEY1
@@ -119,15 +130,12 @@ _KEY1:
 	pop ebx
 	ret
 	
-		 
+; only test	 
 : tstout, tstout, 0
 	text_buffer dup
 	cr printcstring cr
 	'>' emit
 ;
-
-defvar END_OF_LINE, END_OF_LINE, 0 , 0
-defvar PARS_ERROR, PARS_ERROR, 0 , 0
 
 ; function:  NUMBER  TESTED_OK
 ;
@@ -365,7 +373,7 @@ defcode litstring, litstring, 0
 
 	
 
-; function: TEILWORT  rename later to WORD ; TESTED_OK 
+; function: WORT  rename later to WORD  via alias
 ;
 ; gibt den pointer des strings aus zeilenbuffer bis zum Leerzeichen
 ; zurück , PPTR zeigt danach auf das nächste Wort
@@ -424,28 +432,38 @@ section .text
 
 : quit, quit, 0
   R0  rsp! 
- 1 begin while ZEIL  qstack -1 repeat ; loops forever
+ 1 begin while line_interpret  qstack -1 repeat ; loops forever
 ;
  
-; function: TELL   rewrite it !!!! still for linux
+; function: TELL   
 : tell, tell, 0
 	drop printcstring ;printt
 ;
 
-; function: echooff   TESTED_OK
+; function: echooff
+; 
+; Stack:
+;   --
 : echooff, echooff, 0
 			0 NOECHO !
 ;	
-; function: echoon   TESTED_OK
+; function: echoon 
+; 
+; Stack:
+;   --
 : echoon, echoon, 0
 			1 NOECHO !
 ;
-; function: PRESSKEY   TESTED_OK
+; function: PRESSKEY
+; 
+; Stack:
+;   --
+
 : presskey, presskey, 0
       		key_press printcstring tab '!' emit getchar drop clear
 ;
   		   
-;defcode: INTERPRET    better now 
+;defcode: INTERPRET    
 defcode interpret, interpret, 0  
 	mov	dword [var_PARS_ERROR],0	
 	call _word ; Returns %ecx = length, %edi = pointer to word.
@@ -520,6 +538,9 @@ defcode char, char, 0
 	
 ; funktion: printt 
 ; prints an string of len , pointer to string
+; 
+; Stack:
+;  len pointer_to string --
 : printt, printt, 0
  1- 0   do
  	  	rot  dup @ emit 1+ -rot
@@ -527,6 +548,8 @@ defcode char, char, 0
  	  drop
 ; 
 
+; funktion: U.
+; for debuging
 : U., udot, 0
 	BASE @ /mod	?dup
 	if 				;( if quotient <> 0 then )
@@ -542,6 +565,8 @@ defcode char, char, 0
 	 	+ emit	
 ;
 
+; funktion: .S
+; for debug
 : .S, dots, 0
 	'>' emit dsp@
 	begin
@@ -553,9 +578,11 @@ defcode char, char, 0
 ;
 
 ; function: inter
-; ( -- )    
+;
 ;| the interpreter loop
 ;| tests for  'INTERPRET' errors and shows the result of interpret/compile   
+; Stack:
+;    --   
 : inter, inter,0	
  			0 END_OF_LINE !
 			NOECHO @ 0<>
@@ -590,6 +617,24 @@ defcode char, char, 0
 			repeat
 ;			
 
+
+; function: ->PPTR
+; store the value on stack to PPTR and increment PPTR and FILP
+; Stack:
+;   char FILP -- FILP+1
+: ->PPTR, tPPRT, 0
+	PPTR @ c! 1 PPTR +! 1+
+;
+
+; function: endln
+; store ";CR0" at end of line in text_buffer 
+; same as CR on keyboard input
+; Stack:
+;   --
+: endln, endln, 0
+	0x3b ->PPTR FILP ! 0xd ->PPTR FILP ! 0x0 PPTR @ c!
+; 
+
 ; function: linecopy 
 ; ( -- )
 ;| reads from source until ';' char is found in stream
@@ -599,12 +644,6 @@ defcode char, char, 0
 ;| if ';' is found then 'CR' an 0 is added (to text_buffer) 
 ;| this simulates an keyboard input with 'CR' , so the interpreter will
 ;| execute  the line  
-: ->PPTR, tPPRT, 0
-	PPTR @ c! 1 PPTR +! 1+
-;
-: endln, endln, 0
-	0x3b ->PPTR FILP ! 0xd ->PPTR FILP ! 0x0 PPTR @ c!
-; 
 : linecopy, linecopy, 0
 	dup c@ 	; .s presskey ; IF LF is the first char
 	0x0a =
@@ -671,12 +710,12 @@ defcode char, char, 0
 : teilemit, teilemit, 0
   	cr 10 0 do '_'emit loop cr '>'emit ptr_buff printcstring '<' emit 
 ; 			
-; function: ZEIL
+; function: line_interpret
 ; ( -- )
 ;| reads stream of char to text_buffer
 ;| until 'CR' is hit 
-: ZEIL, ZEIL, 0
-       	text_buffer dup  TEXT_BUFF ! zeile 
+: line_interpret, line_interpret, 0
+       	text_buffer dup  TEXT_BUFF ! read_line
         inter
         text_buffer dup PPTR_LAST ! PPTR !
         ;drop ;  clsstack drop
@@ -725,7 +764,12 @@ extern module
 	quit
  	stop
 ;
+
 global last_word
+; function: tst
+; dummy for marking LATEST
+; Stack:
+;	--
 last_word:
 : tst, tst,0
  cr 10 0 do '-'emit loop cr
