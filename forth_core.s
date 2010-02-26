@@ -54,7 +54,7 @@ extern main
 ; ============================================================================
 ;    Virtual Machine Variables
 ; ============================================================================
-; var: statE       
+; var: STATE       
 ; Is the interpreter executing code (0) or compiling (non-zero)?
 defvar STATE, STATE, 0, 0
 
@@ -63,12 +63,12 @@ defvar STATE, STATE, 0, 0
 defvar HERE, HERE, 0, 0
 
 extern last_word
-; var LAtest       
+; var LATEST      
 ; Points to the newset  word in the dictionary.
-defvar LATEST, LATEST, 0, last_word; SySCALL0 must be last in built-in dictionary
+defvar LATEST, LATEST, 0, last_word;  must be last in built-in dictionary
 
 ; var: S0          
-; Stores the address of the top of the parameter stack.
+; Stores the address of the top of the parameter stack. inti at starttime
 defvar S0, S0, 0, 0
 
 ; var: BASE        
@@ -77,20 +77,38 @@ defvar BASE, BASE, 0, 10
 
 extern top
 ; var: TOPMEM
-defvar TOPMEM, TOPMEM, 0, top ; SYSCALL0 must be last in built-in dictionary
+defvar TOPMEM, TOPMEM, 0, top 
 
 ; var: NOECHO
-defvar NOECHO, NOECHO, 0, 1 ; Flag if message is printed when compiling is succsesfull ??
+; Flag if message is printed when compiling is succsesfull ??
+defvar NOECHO, NOECHO, 0, 1 
 
 ; var: text_buff
+; pointer to input_buffer where keyboard chars ar stored
 defvar TEXT_BUFF, TEXT_BUFF, 0 ,0
 
-; var: PPRT (pointer_to_print) 
+; var: PPRT (pointer_to_print)
+; points to the aktual position to be interpreted 
 defvar PPTR, PPTR, 0 , 0
+
+; var: PPTR_LAST 
+; the last word with no errors 
 defvar PPTR_LAST, PPTR_LAST, 0 , 0
+
+; var: SRC 
+; begin of  'modul_adress' loaded by GRUB 
 defvar SRC, SRC, 0 , 0
+
+; var: SRC 
+; end of  'modul_adress' loaded by GRUB only for storing 0 ( EOF)
 defvar SRC_END, SRC_END, 0 , 0
+
+; var: FILP
+; FILE_POSITION_POINTER used to copy the words out of stream starting at SRC
 defvar FILP, FILP, 0 , 0
+
+; var: GRUB
+; pointer stored by GRUB see http://lowlevel.brainsware.org/wiki/index.php/Multiboot for more info.
 defvar GRUB, GRUB, 0, 0
 
 
@@ -147,4 +165,5 @@ defcode exit, exit, 0
         poprsp esi          ; Pops the address of the word to return to
         next                ; and executes it
 
+; this is the for the OLDLINK of the next word  
 global name_exit
