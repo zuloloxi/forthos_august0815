@@ -104,7 +104,22 @@ defcode test_irq, test_irq, 0
 	    repeat
 ;
 text_buffer: times 1024 db 0
-  
+ 
+defcode key1,key1  ,0
+	xor eax,eax
+	call _KEY1
+	push eax
+	next
+_KEY1:
+	push ebx
+	mov ebx,[var_PPTR]
+	mov al,[ebx] 
+	inc ebx
+	mov dword [var_PPTR],ebx
+	pop ebx
+	ret
+	
+		 
 : tstout, tstout, 0
 	text_buffer dup
 	cr printcstring cr
@@ -224,7 +239,7 @@ _FIND:
 
 
 ; function: ">CFA"  TESTED_OK
-defcode >CFA, TCFA, 0
+defcode >cfa, tcfa, 0
 	pop edi
 	call _TCFA
 	push edi
@@ -243,27 +258,27 @@ _TCFA:
 
 
 ; function: >DFA
-: >DFA, TDFA, 0
-	 >CFA	;	(get code field address)
+: >dfa, tdfa, 0
+	 >cfa	;	(get code field address)
 	 4+		;   (add 4 to it to get to next word)
 ;
 	
 ; function: HEADER ; TESTED_OK
 defcode header, header, 0
-	    pop     ecx             ; rcx = length
-        pop     edx             ; rdx = address of name
+	    pop     ecx            
+        pop     edx            
         mov     edi,    [var_HERE]
         mov     eax,    [var_LATEST]
-        stosd                   ; link を設定
+        stosd                   
         ;xor     eax,    eax
-        ;stosb                   ; flags を設定
+        ;stosb                   
         mov     al,     cl
-        stosb                   ; length を設定
-        push    esi             ; rsi 退避
-        mov     esi,    edx     ; address of name
-        rep     movsb           ; name を設定
-        pop     esi             ; rsi 復元
-       lea edi,[edi+3]  ; add     edi,    3      ; align 8
+        stosb                   
+        push    esi             
+        mov     esi,    edx     
+        rep     movsb           
+        pop     esi    
+        lea edi,[edi+3]
         and     edi,    ~3
         mov     eax,    [var_HERE]
         mov     [var_LATEST],   eax
@@ -271,7 +286,7 @@ defcode header, header, 0
         next
      
 ; defcode; "," TESTED_OK
-	defcode comma, comma, 0
+defcode1 ",", comma, 0
 	pop eax		; Code pointer to store.
 	call _COMMA
 	next
@@ -290,30 +305,30 @@ defcode ], RBRAC, 0
 	mov dword [var_STATE],1	; Set STATE to 1.
 	next
 
-; function: :   
-: COL, COLON  ,0
+; function: :
+; [#] needed by forth2s.py to compile -> dd DOCOL (not litn DOCOL)   
+: :, COLON  ,0
 	wort			; Get the name of the new word
     header			; HEADER the dictionary entry / header
-	lit  DOCOL  comma	; Append DOCOL  (the codeword).
+	lit [#] DOCOL  comma	; Append DOCOL  (the codeword).
 	LATEST @  hidden ; Make the word hidden (see below for definition).
 	]		; Go into compile mode.
 ;
 
-; function: ;
-: sk,semicolon, 0x80 ;F_IMMED 
-	STATE @
+defword1 ";",SEMICOLON,0x80
+	dd STATE , fetch
 	if
-	lit exit  comma			; Append EXIT (so the word will return).
-	LATEST @  hidden	 	; Toggle hidden flag -- unhide the word (see below for definition).
-	[					; Go back to IMMEDIATE mode.
+	dd lit, exit, comma			; Append EXIT (so the word will return).
+	dd LATEST, fetch, hidden 	; Toggle hidden flag -- unhide the word (see below for definition).
+	dd LBRAC					; Go back to IMMEDIATE mode.
 	then
-;
+	dd exit
 
 ; function: IMMEDIATE  TESTED_OK
 defcode immediate, immediate, 0x80 ; F_IMMED
 	mov edi,[var_LATEST]	; LATEST word.
 	add edi,4		; Point to name/flags byte.
-	xor	byte [edi],0x20 ; F_IMMED	; Toggle the IMMED bit.
+	xor	byte [edi],0x80 ; F_IMMED	; Toggle the IMMED bit.
 	next
 
 ; function: HIDDEN 
@@ -331,7 +346,7 @@ defcode hidden, hidden, 0
 ;
 
 ; function: "'"  TESTED_OK
-defcode tt, tick, 0 
+defcode1 "'", tick, 0 
 	lodsd			; Get the address of the next word and skip it.
 	push eax		; Push it on the stack.
 	next
@@ -591,24 +606,27 @@ defcode char, char, 0
 	0x3b ->PPTR FILP ! 0xd ->PPTR FILP ! 0x0 PPTR @ c!
 ; 
 : linecopy, linecopy, 0
-	dup c@ 	 ; IF LF is the first char
+	dup c@ 	; .s presskey ; IF LF is the first char
 	0x0a =
 	if 
-	;branch lf			; goto lf	
+	0xd ->PPTR FILP ! 0x0 PPTR @ c! exit
 	then
-	
-	begin
-	dup c@ dup 0x3b <>
-	while
-	 dup 0x0a =  ; wenn LF dann SPACE
-	 if 
-	  drop 0x20
-	 then
-	 dup 0x09 =   ; wenn TAB dann SPACE
-	 if 
-	  drop 0x20
-	 then
-	 ->PPTR
+	1
+	begin while
+	dup c@ dup 0x3b <> if
+			dup 0x0a =  ; wenn LF dann SPACE
+			if 
+	  			drop 0x20
+	 		then
+	 		dup 0x09 =   ; wenn TAB dann SPACE
+			if 
+				drop 0x20
+			then
+	 		->PPTR 1
+		else
+			endln exit
+	 	then
+	 ; zeilemit ;.s presskey
 	repeat
 	endln ; CR and 0 -> ENDING 0 for PRINTSTRING
 ;
@@ -618,35 +636,27 @@ defcode char, char, 0
 ;| executes the loaded ( via GRUB) file
 : interforth, interforth, 0
 	echooff
-	SRC @    	; source
-	FILP !		; file_position_pointer
-	text_buffer	; 
-	PPTR !		; input_line_source_pointer
-1	
+	SRC @  FILP ! 	; source file_position_pointer
+	text_buffer	PPTR !		; input_line_source_pointer
+	1	
 	begin	
 	while
     FILP @	
-    linecopy
-	text_buffer PPTR !
+    linecopy 
+    text_buffer PPTR !
  	NOECHO @ 0<>
 	if
 	 cr cr text_buffer printcstring
 	then
-	
-	inter
+	inter ;zeilemit;presskey
     text_buffer dup PPTR_LAST ! ; remember the last word witch compiled without error
 	PPTR !
-    
-	1
-	FILP +1 
-	FILP @		; is next char = 0
-	c@ 		; then it is  EOF
+    1 FILP +! 
+	FILP @	c@ 		; ; is next char = 0 ; then it is  EOF
 	?dup
 	if 
-	 	-1
-		FILP		; no , go for next line_input
-		+!
-	 	;dd DROP
+	  -1 FILP +!		; no , go for next line_input
+	  ;dd DROP
 	else
 	 ;dd DROP
 	 exit		; yes , EOF 
@@ -686,16 +696,67 @@ S0 @ dsp@ - 4-
 ;
 
 : compile, compile, 0
- cr cr  
+ cr cr  >dfa
+ GRUB @ 0x14 + @
+ GRUB @ 0x18 + @
+ dup @ swap 4+ @ swap
+ 2dup - rot drop ;.s cr presskey printt presskey
  GRUB  @   0x14 +  @ 
  GRUB  @   0x18 +  @ 
- dup @ swap 4+ @   swap
- 2dup -  -rot SRC_END ! 0  SRC_END c! ; Store 0 (EOF ) TO  SRC_END
- swap dup SRC ! swap 2drop drop ;interforth    
+ dup @ swap 4+ @  swap 
+ 2dup  -  rot SRC_END ! 0  SRC_END c! ; Store 0 (EOF ) TO  SRC_END
+ swap dup SRC ! 2drop 2drop  interforth    
  text_buffer TEXT_BUFF ! 1 TEXT_BUFF @ c! ; init
  S0 @ dsp! 
  text_buffer dup  PPTR_LAST ! PPTR !
 ;
+
+: alias1, alias1, 0
+  sk1 1  header  sk2 1   find >cfa @  comma lit exit  comma LATEST @   immediate
+  t1 1  header immediate t2 1   find >cfa @  comma lit exit  comma LATEST @   immediate
+  c1 1  header immediate c2 1   find >cfa @  comma lit exit  comma LATEST @   immediate
+;     ; lit [#] DOCOL  comma	LATEST @  hidden ]
+
+: id., id., 0
+	4+		
+	dup c@		
+	0x1f and	
+
+	begin
+		dup 0>	
+	while
+		swap 1+	
+		dup c@	
+		emit	
+		swap 1-	
+	repeat
+	2drop	
+;
+: ?hidden, qhidden, 0
+	4+	
+	c@	
+	0x20 and
+;
+: ?immediate, qimmediate, 0
+	4+	
+	c@	
+	0x80 and	
+;
+
+: words, words, 0
+	LATEST @	
+	begin
+		?dup	
+	while
+		dup ?hidden 0= if	
+			dup id.		
+			spc
+		then
+		@	
+	repeat
+	cr
+;
+
 
 
 extern module
@@ -708,7 +769,7 @@ extern module
     0x101016 print_idtentry
     ;[`] print_scancode 33 register_isr_handler
     ;[`] print_tic      32 register_isr_handler
-    compile
+    compile ;alias1 
 	quit
  	stop
 ;
@@ -731,5 +792,10 @@ ngef: 			db 'NICHT IN TABELLE' , 0
 stackmes:		db 'STACK> ', 0
 
 stackerr:		db ' STACK undeflow .. reset STACK !' ,0
-
+sk1: db ';',0
+sk2: db 's',0
+t1:  db  0x27,0
+t2:  db 't',0
+c1:  db ',',0
+c2:  db 'c',0
 interpret_is_lit: db 0     

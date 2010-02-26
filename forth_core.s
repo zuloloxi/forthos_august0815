@@ -147,3 +147,4 @@ defcode exit, exit, 0
         poprsp esi          ; Pops the address of the word to return to
         next                ; and executes it
 
+global name_exit

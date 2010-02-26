@@ -80,10 +80,39 @@
     %2:
         dd DOCOL                ; codeword of this word
 %endmacro
+; define: defcode macro
+; defword1 macro
+;  * Define a forth word implemented in forth.
+;
+;  * A forth word is a serie of pointers to the codewords that implement it.
+;  * A forth word must end with the EXIT word.
+;
+;   ARGS: name, label, flags
+%macro defword1 3
+    section .rodata                 ; Define this word in the rodata
+            align 4                 ;   section, aligned and with a 
+            GLOBAL label_%2         ;   global name
+           ;%defstr name %1         ; Set the name and length of this
+            %strlen name_len %1   ;   word
+            %undef OLDLINK          ; Updates OLDLINK and LINK to
+            %xdefine OLDLINK LINK   ;   link this word with the
+            %undef LINK             ;   previous one
+            %xdefine LINK name_%2   ;
+    name_%2:
+            dd  OLDLINK             ; LINK to the previous word
+            db %3 + name_len        ; Flags + len(name)
+            db %1                 ; Name of the word
+
+            align 4                 ; Start the definition in a 4 bytes
+            GLOBAL %2               ;   boundary
+    %2:
+            dd DOCOL                ; codeword of this word
+%endmacro
 
 ; macro: defcode
 ;   Define a forth code word, a forth word implemented in assembler.
 ;
+;   needed for  ";"
 ;   The body of a code word is an assebler routine. The routine must end
 ;   with the next macro to make the forth interpreter execute the next
 ;   operation.
@@ -117,6 +146,40 @@
     code_%2:
 %endmacro
 
+; define:  defcode macro
+; defcode macro1
+;  * Define a forth word implemented in assembler.
+;  * needed for ",","'"
+;
+;  * The body of a code word is an assebler routine. The routine must end
+;  * with the NEXT macro to make the forth interpreter execute the next
+;  * operation.
+;
+;   ARGS: name, label, flags
+%macro defcode1 3
+   section .rodata                 ; Define this word in the rodata
+            align 4                 ;   section, aligned and with a 
+            GLOBAL label_%2         ;   global name
+           ; %defstr name %1         ; Set the name and length of this
+            %strlen name_len %1  ;   word
+            %undef OLDLINK          ; Updates OLDLINK and LINK to
+            %xdefine OLDLINK LINK   ;   link this word with the
+            %undef LINK             ;   previous one
+            %xdefine LINK name_%2   ;
+    name_%2:
+            dd  OLDLINK                ; Links to the previous word
+            db %3 + name_len        ; Flags + len(name)
+            db %1                 ; Name of the word
+
+            align 4                 ; Start the definition in a 4 bytes
+            GLOBAL %2               ;   boundary
+    %2:
+            dd code_%2              ; codeword of this word
+    section .text                   ; Here starts the assembler for this
+            align 4                 ;   word
+            GLOBAL code_%2          ;
+    code_%2:
+%endmacro
 ; macro: defvar
 ;   Define a forth variable. It is a word that pushes in the stack the address
 ;   of the variable.

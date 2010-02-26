@@ -112,7 +112,15 @@ def word_literal(scanner, token):
        In this forth we use [`] instead, for the syntax highlighting.
     '''
     return ['litn %s' % token.split()[1]]
+    
+def word1_literal(scanner, token):
+    '''
+    function: word_literal
+       Translate a ['] forth expression to assembly.
 
+       In this forth we use [`] instead, for the syntax highlighting.
+    '''
+    return ['dd %s' % token.split()[1]]
 def word(scanner, token):
     '''
     function: word
@@ -138,6 +146,7 @@ scanner = re.Scanner([
     (r'0[xX][0-9A-Fa-f]+',      literal),
     (r'\d+\s',                  literal),
     (r"\[`\]\s+\S+",            word_literal),
+    (r"\[#\]\s+\S+",            word1_literal),
     (r'\S+',                    word),
     (r'\s+',                    None),
 ])

@@ -10,7 +10,10 @@
 
 %include "forth_macros.s"
 %include "forth_core.h"
-extern DOCOL
+
+extern name_exit
+%undef OLDLINK
+%xdefine LINK name_exit
 
 [BITS 32]
 ; forthword ptrs contains the basic words of a forth interpreter. The escential
