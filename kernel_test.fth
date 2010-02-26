@@ -438,7 +438,7 @@ section .text
 ;	
 ; function: echoon   TESTED_OK
 : echoon, echoon, 0
-			0 NOECHO !
+			1 NOECHO !
 ;
 ; function: PRESSKEY   TESTED_OK
 : presskey, presskey, 0
@@ -721,7 +721,7 @@ extern module
     0x101016 print_idtentry
     ;[`] print_scancode 33 register_isr_handler
     ;[`] print_tic      32 register_isr_handler
-    compile ;alias1 
+    compile  
 	quit
  	stop
 ;
@@ -744,10 +744,5 @@ ngef: 			db 'NICHT IN TABELLE' , 0
 stackmes:		db 'STACK> ', 0
 
 stackerr:		db ' STACK undeflow .. reset STACK !' ,0
-sk1: db ';',0
-sk2: db 's',0
-t1:  db  0x27,0
-t2:  db 't',0
-c1:  db ',',0
-c2:  db 'c',0
+
 interpret_is_lit: db 0     
