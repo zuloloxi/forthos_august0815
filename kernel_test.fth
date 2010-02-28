@@ -271,8 +271,8 @@ _TCFA:
 	 4+		;   (add 4 to it to get to next word)
 ;
 	
-; function: HEADER ; TESTED_OK
-defcode header, header, 0
+; function: head
+defcode head, head, 0
 	    pop     ecx            
         pop     edx            
         mov     edi,    [var_HERE]
@@ -292,7 +292,30 @@ defcode header, header, 0
         mov     [var_LATEST],   eax
         mov     [var_HERE],     edi
         next
-     
+: header, header, 0
+	wort head
+;
+DOVAR:
+        add eax,4       
+        push eax             
+        next 
+: create, create ,0
+  header  lit [#] DOVAR comma
+;
+
+_dolist:
+		pushrsp esi
+        pop esi
+        next
+        
+: cc, cc, 0
+	HERE @ c!
+	1 HERE +!
+;       
+
+: dolist, dolist, 0
+	232 cc [#] _dolist  
+;     
 ; defcode; "," TESTED_OK
 defcode1 ",", comma, 0
 	pop eax		; Code pointer to store.
@@ -317,7 +340,7 @@ defcode ], RBRAC, 0
 ; [#] needed by forth2s.py to compile -> dd DOCOL (not litn DOCOL)   
 : :, COLON  ,0
 	wort			; Get the name of the new word
-    header			; HEADER the dictionary entry / header
+    head		; HEADER the dictionary entry / header
 	lit [#] DOCOL  comma	; Append DOCOL  (the codeword).
 	LATEST @  hidden ; Make the word hidden (see below for definition).
 	]		; Go into compile mode.

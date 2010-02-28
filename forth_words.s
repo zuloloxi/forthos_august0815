@@ -650,6 +650,235 @@ defword n_byte, n_byte, 0
         dd and
         dd exit
 
+;-------------This Code is taken from bb4wforth.f---see--README-------
+       
+defcode d+,  dadd, 0 ; added by rtr
+        pop edx                 ; ms 32-bits
+        pop eax                 ; ls 32-bits (forth is big-endian)
+        add dword [esp+4],eax
+        adc dword [esp],edx
+        next
+         
+defcode d-, dsub,0 ; added by rtr
+        pop edx                 ; ms 32-bits
+        pop eax                 ; ls 32-bits (forth is big-endian)
+        sub dword [esp+4],eax
+        sbb dword [esp],edx
+        next
+
+defcode um/mod, umdivmod , 0 ; added by rtr (unsigned)
+        pop ebx
+        pop edx
+        pop eax
+        div ebx
+        push edx                ; push remainder
+        push eax                ; push quotient
+        next
+        
+defcode um*,  umul64 ,0  ; added by rtr
+        pop eax
+        pop ebx
+        mul ebx                 ; unsigned multiply
+        push eax                ; ls 32 bits (forth is big-endian)
+        push edx                ; ms 32 bits
+        next 
+        
+defcode r@, rfetch, 0 ; added by rtr
+        mov eax,[ebp]
+        push eax
+        next  
+              
+defcode m*, mul64 ,0 ; added by rtr
+        pop eax
+        pop ebx
+        imul ebx                ; signed multiply
+        push eax                ; ls 32 bits (forth is big-endian)
+        push edx                ; ms 32 bits
+        next
+        
+defcode sm/rem, smdivrem, 0 ; added by rtr (signed)
+        pop ebx
+        pop edx
+        pop eax
+        idiv ebx
+        push edx                ; push remainder
+        push eax                ; push quotient
+        next
+        
+defcode fm/mod, fmdivmod,0 ; added by rtr (floored)
+        pop ebx
+        pop edx
+        pop eax
+        idiv ebx
+        or edx,edx
+        jz _fmmodx              ; no remainder
+        or eax,eax
+        jns _fmmodx             ; quotient is positive
+        dec eax
+        add edx,ebx
+_fmmodx:
+        push edx                ; push remainder
+        push eax                ; push quotient
+        next
+        
+defcode */, muldiv,0 ; added by rtr
+        pop ecx
+        pop ebx
+        pop eax
+        imul ebx
+        idiv ecx
+        push eax
+        next
+        
+defcode */mod, muldivmod ,0 ; added by rtr
+        pop ecx
+        pop ebx
+        pop eax
+        imul ebx
+        idiv ecx
+        push edx                ; push remainder
+        push eax                ; push quotient
+        next
+        
+defcode 2*, twomul, 0 ; added by rtr
+        shl dword [esp],1
+        next
+        
+defcode 2/, twodiv, 0 ; added by rtr
+        sar dword [esp],1
+        next
+        
+defcode u2/, utwodiv,0 ; added by rtr
+        shr dword [esp],1
+        next
+
+defcode u<, ult,0 ; added by rtr
+        pop eax
+        pop ebx
+        cmp ebx,eax
+        setb al
+        movzx eax,al
+        neg eax
+        push eax
+       next
+  
+ defcode u>, ugt,0 ; added by rtr
+        pop eax
+        pop ebx
+        cmp ebx,eax
+        seta al
+        movzx eax,al
+        neg eax
+        push eax
+       next
+
+defcode s>d, stod,0   ; added by rtr
+        pop eax
+        cdq
+        push eax                ; ls 32 bits (forth is big-endian)
+        push edx                ; ms 32 bits
+       next
+        
+defcode roll, roll,0 ; added by rtr
+        pop ecx
+        jecxz _roll_next
+        lea edi,[esp+ecx*4]
+        lea ebx,[edi-4]
+        mov eax,[edi]
+        std
+        xchg esi,ebx
+        rep movsd
+        xchg esi,ebx
+        cld
+        mov [esp],eax
+_roll_next:
+       next  
+       
+defcode (does), does2, 0
+        lea ebp, [ebp-4]
+        mov [ebp],esi
+        pop esi
+        add eax,4
+        push eax
+        next
+        
+
+defcode leave, LEAVE, 0  ; added by rtr
+        lea ebp,[ebp+12]        ; pop return stack
+        jmp _leave
+        
+        
+defcode ?do, qdo, 0 ; added by rtr
+        pop ecx                 ; initial index
+        pop edx                 ; limit
+        cmp ecx,edx
+        jne _dogo
+_leave:
+        mov ecx,1
+        xor ebx,ebx
+_qdo_loop:
+        lodsd
+        cmp eax,DO              ; nested loop ?
+        setz bl
+        add ecx,ebx
+        cmp eax,qdo
+        setz bl
+        add ecx,ebx
+        cmp eax,LOOP
+        setz bl
+        sub ecx,ebx
+        cmp eax,ploop
+        setz bl
+        sub ecx,ebx
+        or ecx,ecx
+        jnz _qdo_loop
+        next
+        
+defcode do,  DO, 0 ; added by rtr
+        pop ecx                 ; initial index
+        pop edx                 ; limit
+_dogo:
+        lea ebp,[ebp-12]        ; make room on return stack
+        mov [ebp+8],esi
+        mov [ebp+4],edx
+        mov [ebp],ecx
+        next
+        
+defcode +loop, ploop, 0 ; added by rtr
+        pop eax                 ; step
+        jmp _loop_step
+        
+defcode loop, LOOP, 0 ; added by rtr
+        mov eax,1               ; default step
+_loop_step:
+        ;test byte [bflags],&81
+        ;jnz near _escape        ; escape key pressed or close
+        mov ebx,[ebp]           ; index
+        sub ebx,[ebp+4]         ; subtract limit
+        btc ebx,31              ; invert msb
+        add ebx,eax             ; step
+        jo _unloop              ; overflow signals loop end
+        btc ebx,31              ; invert msb again
+        add ebx,[ebp+4]         ; add limit back
+        mov [ebp],ebx           ; new index
+        mov esi,[ebp+8]
+        next       ; continue looping
+        
+defcode unloop, unloop, 0  ; added by rtr
+_unloop:
+        lea ebp,[ebp+12]        ; pop return stack
+        next       ; exit loop
+        
+defcode I, I , 0 ; added by rtr
+        push dword [ebp]        ; index
+        next       ; exit loop
+        
+defcode J, J, 0 ; added by rtr
+        push dword [ebp+12]     ; outer index
+        next       ; exit loop
+
+;-------------this code is taken from bb4wforth.f---see--readme-------
+
 ; function: execute
 ;   Executes the word which address in in the stack
 ;
@@ -658,5 +887,5 @@ defword n_byte, n_byte, 0
 defcode execute, execute, 0
         pop eax
         jmp [eax]
-
+        
 global name_execute

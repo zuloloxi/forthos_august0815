@@ -350,7 +350,7 @@
 
 : constant
 	wort
-	header	
+	head
 	DOCOL ,	
 	' lit ,	
 	,
@@ -363,14 +363,14 @@
 : cells ( n -- n ) 4 * ;
 : variable
 	1 cells allot
-	wort header	
+	wort head	
 	DOCOL ,	
 	' lit ,	
 	,
 	' exit ,
 ;
 : value		( n -- )
-	wort header	
+	wort head	
 	DOCOL ,
 	' lit ,
 	,
@@ -560,7 +560,7 @@
 ;
 
 : noname
-	0 0 header	
+	0 0 head	
 	HERE @	
 	DOCOL ,	
 	]
@@ -713,6 +713,72 @@
 	." Type 'words' ... " cr cr
 	
 ;
+
+
+4 constant cell
+: noop ( -- ) ;  
+
+
+( ----------------------------------------------------------------------- )
+
+( The preceding code is standard Jonesforth (except U. using U/MOD). )
+( Below are the BB4Wforth additions and corrections to Jonesforth. )
+( These improve ISO compliance and provide access to the BB4W host. )
+( (C) Copyright Richard T. Russell 2009, http://www.rtrussell.co.uk/ )
+( You may freely adapt this code so long as acknowledgement is made. )
+( some words adapted by august0815 , 06.02.2010 )
+( STILL TESTING)
+;
+0 value pnsptr ;
+: source TEXT_BUFF @ dup PPTR @ - ;
+: >in PPTR @ ;
+: alias
+  wort head wort find >cfa @
+  dup DOCOL = if ." cannot alias a non-code word" then
+  ,
+; 
+: cell+ ( a-addr1 -- a-addr2 ) 1 cells + ;
+: cell- ( a-addr1 -- a-addr2 ) 1 cells - ;
+: chars ( n1 -- n2 ) ;
+immediate ;
+
+alias (wort) wort ;
+alias (here) HERE ;
+alias (find) find ;
+alias (key) key1 ;
+
+hide depth ;
+hide .s ;
+hide HERE ;
+hide allot ;
+hide variable
+hide true ;
+hide find ;
+hide while ;
+hide repeat ;
+hide constant ;
+( HIDE ' ( LIT is identical ) ) ;
+        
+
+echoon ;
+: <builds
+ create
+  0 ,
+;
+: here ( -- addr ) (here) @ ;
+
+
+
+immediate ;
+( constant <builds , does> @ ) 
+immediate ;
+: depth ( -- +n ) S0 @ 4- dsp@ - 4 / ;
+: .s ( -- ) S0 @ depth 1 ?do 4- dup @ . loop drop ;
+
+: allot ( n -- ) here + (here) ! ;
+
+: variable ( "<spaces>name" -- ) create 1 cells allot ;
+: count ( caddr1 -- caddr2 u ) dup c@ swap 1+ swap ;
 
 immediate ; 
 echoon ;
