@@ -255,8 +255,8 @@ defcode >cfa, tcfa, 0
 _TCFA:
 	xor eax,eax
 	add edi,4		; Skip link pointer.
-	mov al,[edi]		; Load flags+len into %al.
-	inc edi		; Skip flags+len byte.
+	mov al,[edi]	; Load flags+len into %al.
+	inc edi			; Skip flags+len byte.
 	and al,0x1f 	;F_LENMASK	; Just the length, not the flags.
 	add edi,eax		; Skip the name.
 	add edi,3		; The codeword is 4-byte aligned.
