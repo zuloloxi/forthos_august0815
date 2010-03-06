@@ -295,6 +295,7 @@ defcode head, head, 0
 : header, header, 0
 	wort head
 ;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 DOVAR:
         add eax,4       
         push eax             
@@ -315,7 +316,8 @@ _dolist:
 
 : dolist, dolist, 0
 	232 cc [#] _dolist  
-;     
+; 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;    
 ; defcode; "," TESTED_OK
 defcode1 ",", comma, 0
 	pop eax		; Code pointer to store.
@@ -327,14 +329,15 @@ _COMMA:
 	mov dword [var_HERE],edi	; HERE
 	ret
 
-; function: [   TESTED_OK
-defcode [, LBRAC, 0x80 ;;F_IMMED,LBRAC,0
-	mov dword [var_STATE],0	; Set STATE to 0.
-	next
-; defcode ]	   TESTED_OK
-defcode ], RBRAC, 0
-	mov dword [var_STATE],1	; Set STATE to 1.
-	next
+; function: [ 
+:	[, LBRAC, 0x80 		;;F_IMMED,LBRAC,0
+	0 STATE !			; Set STATE to 0.
+;
+
+; function: ]	   
+:  	], RBRAC, 0
+	1 STATE !			; Set STATE to 1.
+;
 
 ; function: :
 ; [#] needed by forth2s.py to compile -> dd DOCOL (not litn DOCOL)   
