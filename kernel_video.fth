@@ -17,23 +17,23 @@ section .text
 
 ; var: screen
 ;   Address of the begining of the screen.
-defconst screen, screen, 0, 0xB8000
+defconst "screen", screen, 0, 0xB8000
 ; var: cursor_pos_x
 ;    Position x of the cursor. In which column, form 0 to 79 the cursor is.
-defvar cursor_pos_x, cursor_pos_x, 0 , 0
+defvar "cursor_pos_x", cursor_pos_x, 0 , 0
 ; var: cursor_pos_y
 ;   Position y of the cursor. In which line, from 0 to 24 the cursor is.
-defvar cursor_pos_y, cursor_pos_y, 0 , 0
+defvar "cursor_pos_y", cursor_pos_y, 0 , 0
 ; var: screen_color
 ;    The foreground and background colors to use.
-defvar screen_color, screen_color, 0, 0x0f00
+defvar "screen_color", screen_color, 0, 0x0f00
 
 ; function: cursor_pos_rel
 ;   Returns the cursor relative position respect to the origin of the screen
 ;
 ; Stack
 ;   -- cursor_pos_rel
-: cursor_pos_rel, cursor_pos_rel, 0
+: cursor_pos_rel
     cursor_pos_y @ 160 *
     cursor_pos_x @   2 * +
 ;
@@ -43,7 +43,7 @@ defvar screen_color, screen_color, 0, 0x0f00
 ;
 ; Stack
 ;   -- cursor_pos
-: cursor_pos, cursor_pos, 0
+: cursor_pos
     cursor_pos_rel screen +
 ;
 
@@ -52,7 +52,7 @@ defvar screen_color, screen_color, 0, 0x0f00
 ;
 ; Stack:
 ;   --
-: at_hw, at_hw, 0
+: at_hw
     cursor_pos_rel          ; Get the position of the cursor
     14 0x3D4 outb           ; Say you're going to send the high byte
     dup   1 n_byte          ; ... get the higer byte
@@ -68,7 +68,7 @@ defvar screen_color, screen_color, 0, 0x0f00
 ; 
 ; Stack:
 ;   y x --
-: atx, atx, 0
+: atx
     cursor_pos_x !
     cursor_pos_y !
 ;
@@ -78,7 +78,7 @@ defvar screen_color, screen_color, 0, 0x0f00
 ;
 ; Stack:
 ;   color --
-defcode ink, ink, 0
+defcode "ink", ink, 0
         pop eax
         and eax, 0x0f
         shl eax, 8
@@ -93,7 +93,7 @@ defcode ink, ink, 0
 ;
 ; Stack:
 ;   color --
-defcode bg, bg, 0
+defcode "bg", bg ,0
         pop eax
         and eax, 0x0f
         shl eax, 12
@@ -108,7 +108,7 @@ defcode bg, bg, 0
 ;
 ; Stack:
 ;   color -- color
-: bright, bright, 0
+: bright
     8 +
 ;
 
@@ -116,13 +116,13 @@ defcode bg, bg, 0
 ;
 ; Stack
 ;   --
-: screen_scroll, screen_scroll, 0
+: screen_scroll
     screen   dup 160 +   swap   3840 cmove
     ; TODO - Clean last line, move cursor
     _clean_last_line
 ;
 
-: _clean_last_line, _clean_last_line, 0
+: _clean_last_line
     screen  dup 4000 + swap 3840 + do
         screen_color @ over w! 1+
     loop
@@ -133,7 +133,7 @@ defcode bg, bg, 0
 ;
 ; Stack:
 ;   --
-: screen_scroll_, screen_scroll_, 0
+: screen_scroll_
     cursor_pos_y @ 24 > if
         screen_scroll
         24 cursor_pos_y !
@@ -145,7 +145,7 @@ defcode bg, bg, 0
 ;
 ; Stack:
 ;   --
-: cursor_forward, cursor_forward, 0
+: cursor_forward
     1 cursor_pos_x @ + 80 /mod
     cursor_pos_y +!
     cursor_pos_x !
@@ -157,7 +157,7 @@ defcode bg, bg, 0
 ;
 ; Stack:
 ;   --
-: cursor_back, cursor_back, 0
+: cursor_back
     -1 cursor_pos_x @ + 80 /mod
     cursor_pos_y +!
     cursor_pos_x !
@@ -172,7 +172,7 @@ defcode bg, bg, 0
 ;
 ; Stack:
 ;   char -- charword
-defcode c>cw, char_to_charword, 0
+defcode "c>cw", char_to_charword, 0
         pop eax
         and eax, 0xff
         mov ebx, [var_screen_color]
@@ -186,7 +186,7 @@ defcode c>cw, char_to_charword, 0
 ;
 ; Stack:
 ;   charword --
-: emitcw, emitcw, 0
+: emitcw
     cursor_pos w!
     cursor_forward
 ;
@@ -196,7 +196,7 @@ defcode c>cw, char_to_charword, 0
 ;
 ; Stack:
 ;   char --
-: emit, emit, 0
+: emit
     c>cw emitcw
 ;
 
@@ -205,7 +205,7 @@ defcode c>cw, char_to_charword, 0
 ;
 ; Stack:
 ;   &string --
-: printcstring, printcstring, 0
+: printcstring
     begin dup c@ dup while emit 1+ repeat
     2drop
 ;
@@ -215,7 +215,7 @@ defcode c>cw, char_to_charword, 0
 ;
 ; Stack:
 ;   char --
-: clear, clear, 0
+: clear
     0 0 atx
     2000 0 do spc loop
     0 0 atx
@@ -226,7 +226,7 @@ defcode c>cw, char_to_charword, 0
 ;
 ; Stack:
 ;    --
-: cr, cr, 0
+: cr
     1 cursor_pos_y +!
     0 cursor_pos_x !
     at_hw
@@ -235,7 +235,7 @@ defcode c>cw, char_to_charword, 0
 
 ; function: spc
 ;   Prints a space
-: spc, spc, 0
+: spc
     32 emit
 ;
 		 	
@@ -244,7 +244,7 @@ defcode c>cw, char_to_charword, 0
 ;
 ; Stack:
 ;   --
-: tab, tab, 0
+: tab
     ; TODO - Move to the next column multiple of 8
     8 cursor_pos_x +! at_hw
 ;
@@ -254,7 +254,7 @@ defcode c>cw, char_to_charword, 0
 ;
 ; stack:
 ;   n --
-: intprint, intprint, 0
+: intprint
     10 /mod
     dup 0<> if  intprint  else  drop  then
     '0' + emit
@@ -266,7 +266,7 @@ defcode c>cw, char_to_charword, 0
 ;
 ; stack:
 ;   n --
-: hexprint, hexprint, 0
+: hexprint
     16 /mod
     dup 0<> if hexprint else drop then
     dup 10 < if '0' else 'A' 10 - then

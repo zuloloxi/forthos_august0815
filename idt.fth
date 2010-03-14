@@ -14,6 +14,7 @@
 
 [BITS 32]
 %include "forth.h"
+
 section .text
 
 ; function: set_idt
@@ -21,7 +22,7 @@ section .text
 ;
 ; stack:
 ;  flags sel isr idt --
-defcode set_idt, set_idt, 0
+defcode "set_idt", set_idt, 0
         pop ebx
         pop eax
         mov [ebx], ax       ; Set isr_lo
@@ -34,7 +35,7 @@ defcode set_idt, set_idt, 0
         mov [ebx+4], ax     ; set flag + 0 byte
         next
 
-: idt_set_table, idt_set_table, 0
+: idt_set_table
     0x8E 0x08
         2dup isr0    idtable            set_idt
         2dup isr1    idtable 8  1 * +   set_idt
@@ -90,13 +91,13 @@ defcode set_idt, set_idt, 0
 ;   Sets the idt pointer register.
 ;
 ;   It sets the idtr to a constant value.
-defcode set_idtr, set_idtr, 0
+defcode "set_idtr", set_idtr, 0
         lidt [idt_pointer]
         next
 
 ; function: idt_init
 ;   Initialize the idt
-: idt_init, idt_init, 0
+: idt_init
     idt_set_table
     set_idtr
 ;

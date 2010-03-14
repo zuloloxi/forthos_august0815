@@ -15,28 +15,28 @@ extern name_getchar
 %xdefine LINK name_getchar
 
 [BITS 32]
-: print_scancode, print_scancode, 0
-    kbd_scancode dup intprint spc sc>c spc  emit cr
+: print_scancode
+    kbd_scancode dup intprint spc sc_to_c spc  emit cr
 ;
 
-defvar tic_count, tic_count, 0, 0
-: print_tic, print_tic, 0
+defvar "tic_count", tic_count, 0, 0
+: print_tic
     1 tic_count +!
     tic_count @ 100 mod 0= if
       tic_msg printcstring cr
     then
 ;
 
-: print_scancodes, print_scancodes, 0
+: print_scancodes
     begin print_scancode 0 until
 ;
 
-: print_interrupt, print_interrupt, 0
+: print_interrupt
     fault printcstring cr 
 ;
 
 ; prints an idt entry
-: print_idtentry, print_idtentry, 0
+: print_idtentry
     dup 4 + @   swap @              ; wh wl
     dup hi hexprint spc             ; sel
         lo hexprint spc             ; base lo
@@ -45,22 +45,22 @@ defvar tic_count, tic_count, 0, 0
 ;
 
 ; test irq
-defcode test_irq, test_irq, 0
+defcode "test_irq", test_irq, 0
     int 33
     next
 
 ; divide by zero
-: div_by_zero, div_by_zero, 0
+: div_by_zero
     2 0 / drop
 ;
 
 ; Print hello word
-: print_hello, print_hello, 0
+: print_hello
     hello printcstring cr
 ;
 
 %define _invoke_addr print_hello
-: test_invoke, test_invoke, 0
+: test_invoke
     _invoke_addr execute
 ;
 
@@ -70,7 +70,7 @@ defcode test_irq, test_irq, 0
 ; Stack:
 ; ( char text_buffer text_buffer -- text_buffer )
 
-: store_in_buffer, store_in_buffer,0
+: store_in_buffer
 	swap dup 1+ -rot c!
 ;
 
@@ -79,7 +79,7 @@ defcode test_irq, test_irq, 0
 ; Stack:
 ; address_of_text_buffer  -- 
 ; zeile_buffer:  ist 1024 byte lang
-: read_line, read_line, 0
+: read_line
         1
         begin
         while
@@ -116,7 +116,7 @@ text_buffer: times 1024 db 0
 ; reads the next char in text_buffer PPTR points at
 ; Stack:
 ;    -- char
-defcode key1,key1  ,0
+defcode "key1", key1  ,0
 	xor eax,eax
 	call _KEY1
 	push eax
@@ -131,7 +131,7 @@ _KEY1:
 	ret
 	
 ; only test	 
-: tstout, tstout, 0
+: tstout
 	text_buffer dup
 	cr printcstring cr
 	'>' emit
@@ -146,7 +146,7 @@ _KEY1:
 ; OUT:eax parsed number
 ;
 ;     ecx number of unparsed characters (0 = no error)
-defcode number, number, 0
+defcode "number", number, 0
 	pop ecx		; length of string
 	pop edi		; start address of string
 	call _NUMBER
@@ -204,7 +204,7 @@ _NUMBER:
 ; edi = address
 ;
 ;OUT: ; eax = address of dictionary entry (or NULL)
-defcode find, find, 0
+defcode "find", find, 0
 	pop ecx		; ecx = length
 	pop edi		; edi = address
 	call _FIND
@@ -247,7 +247,7 @@ _FIND:
 
 
 ; function: ">CFA"  TESTED_OK
-defcode >cfa, tcfa, 0
+defcode ">cfa", tcfa, 0
 	pop edi
 	call _TCFA
 	push edi
@@ -266,13 +266,13 @@ _TCFA:
 
 
 ; function: >DFA
-: >dfa, tdfa, 0
-	 >cfa	;	(get code field address)
-	 4+		;   (add 4 to it to get to next word)
-;
+defword ">dfa", tdfa, 0
+        dd tcfa	 	; 	(get code field address)
+        dd incr4	;    (add 4 to it to get to next word)
+        dd exit
 	
 ; function: head
-defcode head, head, 0
+defcode "head", head, 0
 	    pop     ecx            
         pop     edx            
         mov     edi,    [var_HERE]
@@ -292,34 +292,23 @@ defcode head, head, 0
         mov     [var_LATEST],   eax
         mov     [var_HERE],     edi
         next
-: header, header, 0
+: header
 	wort head
 ;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;-------------------test------------------------------------- 
 DOVAR:
         add eax,4       
         push eax             
         next 
-: create, create ,0
+
+
+: create
   header  lit [#] DOVAR comma
 ;
 
-_dolist:
-		pushrsp esi
-        pop esi
-        next
-        
-: cc, cc, 0
-	HERE @ c!
-	1 HERE +!
-;       
-
-: dolist, dolist, 0
-	232 cc [#] _dolist  
-; 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;    
+;-------------------test-------------------------------------  
 ; defcode; "," TESTED_OK
-defcode1 ",", comma, 0
+defcode ",", comma, 0
 	pop eax		; Code pointer to store.
 	call _COMMA
 	next
@@ -330,26 +319,30 @@ _COMMA:
 	ret
 
 ; function: [ 
-:	[, LBRAC, 0x80 		;;F_IMMED,LBRAC,0
-	0 STATE !			; Set STATE to 0.
-;
+defcode	"[", LBRAC, 0x80 		;;F_IMMED,LBRAC,0
+	mov dword [var_STATE],0			; Set STATE to 0.
+next
 
 ; function: ]	   
-:  	], RBRAC, 0
-	1 STATE !			; Set STATE to 1.
-;
+defcode "]", RBRAC, 0
+	mov dword [var_STATE],1			; Set STATE to 1.
+next
 
 ; function: :
 ; [#] needed by forth2s.py to compile -> dd DOCOL (not litn DOCOL)   
-: :, COLON  ,0
-	wort			; Get the name of the new word
-    head		; HEADER the dictionary entry / header
-	lit [#] DOCOL  comma	; Append DOCOL  (the codeword).
-	LATEST @  hidden ; Make the word hidden (see below for definition).
-	]		; Go into compile mode.
-;
+defword ":", colon, 0
+        dd wort        ;  Get the name of the new word
+        dd head        ;  HEADER the dictionary entry / header
+        dd lit
+        dd DOCOL
+        dd comma        ;  Append DOCOL  (the codeword).
+        dd LATEST
+        dd fetch
+        dd hidden       ;  Make the word hidden (see below for definition).
+        dd RBRAC        ;  Go into compile mode.
+        dd exit
 
-defword1 ";",SEMICOLON,0x80
+defword ";",SEMICOLON,0x80
 	dd STATE , fetch
 	if
 	dd lit, exit, comma			; Append EXIT (so the word will return).
@@ -359,28 +352,28 @@ defword1 ";",SEMICOLON,0x80
 	dd exit
 
 ; function: IMMEDIATE  TESTED_OK
-defcode immediate, immediate, 0x80 ; F_IMMED
+defcode "immediate", immediate, 0x80 ; F_IMMED
 	mov edi,[var_LATEST]	; LATEST word.
 	add edi,4		; Point to name/flags byte.
 	xor	byte [edi],0x80 ; F_IMMED	; Toggle the IMMED bit.
 	next
 
 ; function: HIDDEN 
-defcode hidden, hidden, 0
+defcode "hidden", hidden, 0
 	pop edi		; Dictionary entry.
 	add edi,4		; Point to name/flags byte.
 	xor byte [edi],0x20   ;F_HIDDEN	; Toggle the HIDDEN bit.
 	next
 	
 ; function: HIDE	
-: hide, hide, 0
+: hide
 	wort		; Get the word (after HIDE).
 	find		; Look up in the dictionary.
 	hidden		; Set F_HIDDEN flag.
 ;
 
 ; function: "'"  TESTED_OK
-defcode1 "'", tick, 0 
+defcode "'", tick, 0 
 	lodsd			; Get the address of the next word and skip it.
 	push eax		; Push it on the stack.
 	next
@@ -388,7 +381,7 @@ defcode1 "'", tick, 0
 ; TODO Branching??
 
 ; function: LITSTRING
-defcode litstring, litstring, 0
+defcode "litstring", litstring, 0
 	lodsd			; get the length of the string
 	push esi		; push the address of the start of the string
 	push eax		; push it on the stack
@@ -406,7 +399,7 @@ defcode litstring, litstring, 0
 ; edi  		; push base address
 ; ecx		; push length
 
-defcode wort, wort , 0
+defcode "wort", wort , 0
 	call _word
 	push edi		; push base address
 	push ecx		; push length
@@ -456,13 +449,13 @@ ptr_buff: times 256 db 0
 		
 section .text
 
-: quit, quit, 0
+: quit
   R0  rsp! 
- 1 begin while line_interpret  qstack -1 repeat ; loops forever
+ 1 begin while line_interpret  ?stack -1 repeat ; loops forever
 ;
  
 ; function: TELL   
-: tell, tell, 0
+: tell
 	drop printcstring ;printt
 ;
 
@@ -470,14 +463,14 @@ section .text
 ; 
 ; Stack:
 ;   --
-: echooff, echooff, 0
+: echooff
 			0 NOECHO !
 ;	
 ; function: echoon 
 ; 
 ; Stack:
 ;   --
-: echoon, echoon, 0
+: echoon
 			1 NOECHO !
 ;
 ; function: PRESSKEY
@@ -485,12 +478,12 @@ section .text
 ; Stack:
 ;   --
 
-: presskey, presskey, 0
+: presskey
       		key_press printcstring tab '!' emit getchar drop clear
 ;
   		   
 ;defcode: INTERPRET    
-defcode interpret, interpret, 0  
+defcode "interpret", interpret, 0  
 	mov	dword [var_PARS_ERROR],0	
 	call _word ; Returns %ecx = length, %edi = pointer to word.
 	; Is it in the dictionary?
@@ -555,7 +548,7 @@ defcode interpret, interpret, 0
 	mov	dword [var_PARS_ERROR] ,0xffff
 	next
 
-defcode char, char, 0
+defcode "char", char, 0
 	call _word
 	xor eax,eax
 	mov al,[edi]
@@ -567,7 +560,7 @@ defcode char, char, 0
 ; 
 ; Stack:
 ;  len pointer_to string --
-: printt, printt, 0
+: printt
  1- 0   do
  	  	rot  dup @ emit 1+ -rot
  	  loop
@@ -576,10 +569,10 @@ defcode char, char, 0
 
 ; funktion: U.
 ; for debuging
-: U., udot, 0
+: U.
 	BASE @ /mod	?dup
 	if 				;( if quotient <> 0 then )
-	 	 udot
+	 	 U.
 	else
 	then
 		dup 10 <
@@ -593,12 +586,12 @@ defcode char, char, 0
 
 ; funktion: .S
 ; for debug
-: .S, dots, 0
+: dotS
 	'>' emit dsp@
 	begin
 		dup S0 @ <
 	while
-		dup @ udot spc 4+
+		dup @ U. spc 4+
 	repeat
 	drop '<' emit
 ;
@@ -609,7 +602,7 @@ defcode char, char, 0
 ;| tests for  'INTERPRET' errors and shows the result of interpret/compile   
 ; Stack:
 ;    --   
-: inter, inter,0	
+: inter
  			0 END_OF_LINE !
 			NOECHO @ 0<>
 			if
@@ -644,11 +637,11 @@ defcode char, char, 0
 ;			
 
 
-; function: ->PPTR
+; function: to_PPTR
 ; store the value on stack to PPTR and increment PPTR and FILP
 ; Stack:
 ;   char FILP -- FILP+1
-: ->PPTR, tPPRT, 0
+: to_PPTR
 	PPTR @ c! 1 PPTR +! 1+
 ;
 
@@ -657,8 +650,8 @@ defcode char, char, 0
 ; same as CR on keyboard input
 ; Stack:
 ;   --
-: endln, endln, 0
-	0x3b ->PPTR FILP ! 0xd ->PPTR FILP ! 0x0 PPTR @ c!
+: endln
+	0x3b to_PPTR FILP ! 0xd to_PPTR FILP ! 0x0 PPTR @ c!
 ; 
 
 ; function: linecopy 
@@ -670,11 +663,11 @@ defcode char, char, 0
 ;| if ';' is found then 'CR' an 0 is added (to text_buffer) 
 ;| this simulates an keyboard input with 'CR' , so the interpreter will
 ;| execute  the line  
-: linecopy, linecopy, 0
+: linecopy
 	dup c@ 	; .s presskey ; IF LF is the first char
 	0x0a =
 	if 
-	0xd ->PPTR FILP ! 0x0 PPTR @ c! exit
+	0xd to_PPTR FILP ! 0x0 PPTR @ c! exit
 	then
 	1
 	begin while
@@ -687,7 +680,7 @@ defcode char, char, 0
 			if 
 				drop 0x20
 			then
-	 		->PPTR 1
+	 		to_PPTR 1
 		else
 			endln exit
 	 	then
@@ -699,7 +692,7 @@ defcode char, char, 0
 ; function: interforth
 ; ( -- )
 ;| executes the loaded ( via GRUB) file
-: interforth, interforth, 0
+: interforth
 	echooff
 	SRC @  FILP ! 	; source file_position_pointer
 	text_buffer	PPTR !		; input_line_source_pointer
@@ -730,27 +723,27 @@ defcode char, char, 0
 	1
 	repeat
 ;
-: zeilemit, zeilemit, 0
+: zeilemit
   	cr 10 0 do '-'emit loop cr '>'emit text_buffer printcstring '<' emit 
 ;
-: teilemit, teilemit, 0
+: teilemit
   	cr 10 0 do '_'emit loop cr '>'emit ptr_buff printcstring '<' emit 
 ; 			
 ; function: line_interpret
 ; ( -- )
 ;| reads stream of char to text_buffer
 ;| until 'CR' is hit 
-: line_interpret, line_interpret, 0
+: line_interpret
        	text_buffer dup  TEXT_BUFF ! read_line
         inter
         text_buffer dup PPTR_LAST ! PPTR !
         ;drop ;  clsstack drop
 ;
 
-: depth, depth, 0
+: depth
 S0 @ dsp@ - 4-
 ;
-: ?stack, qstack, 0
+: ?stack
 		depth 0>
 		if 
 			drop
@@ -760,7 +753,7 @@ S0 @ dsp@ - 4-
 		then
 ;
 
-: compile, compile, 0
+: compile
  cr cr  >dfa
  GRUB @ 0x14 + @
  GRUB @ 0x18 + @
@@ -779,7 +772,7 @@ S0 @ dsp@ - 4-
 extern module
 ; function: main
 ;   The first forth word executed by the kernel.
-: main_test, main_test, 0
+: main_test
     clear module @ GRUB !
     0x101006 print_idtentry
     0x10100E print_idtentry
@@ -797,7 +790,7 @@ global last_word
 ; Stack:
 ;	--
 last_word:
-: tst, tst,0
+: tst
  cr 10 0 do '-'emit loop cr
 ; 
 section .rodata

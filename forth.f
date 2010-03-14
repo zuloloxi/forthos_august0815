@@ -769,9 +769,6 @@ echoon ;
 
 
 
-immediate ;
-( constant <builds , does> @ ) 
-immediate ;
 : depth ( -- +n ) S0 @ 4- dsp@ - 4 / ;
 : .s ( -- ) S0 @ depth 1 ?do 4- dup @ . loop drop ;
 
@@ -783,3 +780,12 @@ immediate ;
 immediate ; 
 echoon ;
 wel ;
+LATEST here .s ;
+
+<builds a ;
+<builds b ;
+<builds c ;
+<builds d ;
+
+d c b a LATEST here .s ;
+

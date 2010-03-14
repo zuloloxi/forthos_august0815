@@ -16,7 +16,7 @@
 ; Parameters:
 ;   val - The value to out. Byte.
 ;   port - The port to output the value. int16.
-defcode outb, outb, 0
+defcode "outb", outb, 0
         pop edx
         pop eax
         out dx, al
@@ -27,7 +27,7 @@ defcode outb, outb, 0
 ;
 ; Stack:
 ;   port -- val
-defcode inb, inb, 0
+defcode "inb", inb, 0
         pop edx
         xor eax, eax
         in  al, dx
@@ -35,12 +35,12 @@ defcode inb, inb, 0
         next
 
 ; b3b2b1b0 -- 0000b1b0
-: lo, lo, 0
+: lo
     0xFFFF and
 ;
 
 ; b3b2b1b0 -- 0000b1b0
-: hi, hi, 0
+: hi
     16 shr 0xFFFF and
 ;
 

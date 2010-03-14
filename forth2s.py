@@ -6,7 +6,7 @@
 # Jose Dinuncio <jdinunci@uc.edu.ve>, 12/2009
 import re
 import commands
-
+import string
 
 # Option parser
 from optparse import OptionParser
@@ -181,7 +181,8 @@ def translate_forth_def(line):
     Returns:
         string - A line of text with the defword of the forth word being defined.
     '''
-    defword = 'defword ' + line[1:-1]
+    'tmp = line[2:-1]'
+    defword = 'defword "' + line[2:-1] + '", ' + line[2:-1] + ', 0'
     return defword
 
 
@@ -193,11 +194,17 @@ def get_symbols():
     '''
     dct = {}
     lines = commands.getoutput("grep '^def[vcw]' *.s *.fth").splitlines()
-    lines.extend(commands.getoutput("grep '^: ' *.fth").splitlines())
     for line in lines:
         parts = line.split()
         parts = ''.join(parts[1:]).split(',')
-        key = parts[0]
+        key = parts[0][1:-1]
+        val = parts[1] 
+        dct[key] = val
+    
+    lines=commands.getoutput("grep '^: ' *.fth").splitlines()
+    for line in lines:
+    	parts = line.split()
+    	key = parts[1]
         val = parts[1]
         dct[key] = val
     return dct

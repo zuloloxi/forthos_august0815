@@ -32,7 +32,7 @@ cold_start:
 extern pit_init
 extern irq_init
 extern idt_init
-: main_kernel, main_kernel, 0
+: main_kernel
     idt_init
     100 pit_init
     irq_init

@@ -56,96 +56,96 @@ extern main
 ; ============================================================================
 ; var: STATE       
 ; Is the interpreter executing code (0) or compiling (non-zero)?
-defvar STATE, STATE, 0, 0
+defvar "STATE", STATE, 0, 0
 
 ; var: HERE        
 ; Points to the next free byte of memory.
-defvar HERE, HERE, 0, 0
+defvar "HERE", HERE, 0, 0
 
 extern last_word
 ; var LATEST      
 ; Points to the newset  word in the dictionary.
-defvar LATEST, LATEST, 0, last_word;  must be last in built-in dictionary
+defvar "LATEST", LATEST, 0, last_word;  must be last in built-in dictionary
 
 ; var: S0          
 ; Stores the address of the top of the parameter stack. inti at starttime
-defvar S0, S0, 0, 0
+defvar "S0", S0, 0, 0
 
 ; var: BASE        
 ; The current base for printing and reading numbers.
-defvar BASE, BASE, 0, 10
+defvar "BASE", BASE, 0, 10
 
 extern top
 ; var: TOPMEM
-defvar TOPMEM, TOPMEM, 0, top 
+defvar "TOPMEM", TOPMEM, 0, top 
 
 ; var: NOECHO
 ; Flag if message is printed when compiling is succsesfull ??
-defvar NOECHO, NOECHO, 0, 1 
+defvar "NOECHO", NOECHO, 0, 1 
 
 ; var: text_buff
 ; pointer to input_buffer where keyboard chars ar stored
-defvar TEXT_BUFF, TEXT_BUFF, 0 ,0
+defvar "TEXT_BUFF", TEXT_BUFF, 0 ,0
 
 ; var: PPRT (pointer_to_print)
 ; points to the aktual position to be interpreted 
-defvar PPTR, PPTR, 0 , 0
+defvar "PPTR", PPTR, 0 , 0
 
 ; var: PPTR_LAST 
 ; the last word with no errors 
-defvar PPTR_LAST, PPTR_LAST, 0 , 0
+defvar "PPTR_LAST", PPTR_LAST, 0 , 0
 
 ; var: SRC 
 ; begin of  'modul_adress' loaded by GRUB 
-defvar SRC, SRC, 0 , 0
+defvar "SRC", SRC, 0 , 0
 
 ; var: SRC 
 ; end of  'modul_adress' loaded by GRUB only for storing 0 ( EOF)
-defvar SRC_END, SRC_END, 0 , 0
+defvar "SRC_END", SRC_END, 0 , 0
 
 ; var: FILP
 ; FILE_POSITION_POINTER used to copy the words out of stream starting at SRC
-defvar FILP, FILP, 0 , 0
+defvar "FILP", FILP, 0 , 0
 
 ; var: GRUB
 ; pointer stored by GRUB see http://lowlevel.brainsware.org/wiki/index.php/Multiboot for more info.
-defvar GRUB, GRUB, 0, 0
+defvar "GRUB", GRUB, 0, 0
 
 ; var: END_OF_LINE
 ; signal that the text_buffer (line) is now finished 
-defvar END_OF_LINE, END_OF_LINE, 0 , 0
+defvar "END_OF_LINE", END_OF_LINE, 0 , 0
 
 ; var: PARS_ERROR
 ; no error while interpret/compile time
-defvar PARS_ERROR, PARS_ERROR, 0 , 0
+defvar "PARS_ERROR", PARS_ERROR, 0 , 0
 
 ; ============================================================================
 ;       Virtual Machine constants
 ; ============================================================================
 ; const: VERSION
 ; The current version of this FORTH.
-defconst VERSION, VERSION, 0, 1
+defconst "VERSION", VERSION, 0, 1
 
 extern return_stack_top
 ; const: R0          
 ; The address of the top of the return stack.
-defconst R0, R0, 0, return_stack_top
+defconst "R0", R0, 0, return_stack_top
 
 ; const: DOCOL       
 ; Pointer to DOCOL.
-defconst DOCOL, __DOCOL, 0, DOCOL
+defconst "DOCOL", __DOCOL, 0, DOCOL
 
 ; const: F_IMMED     
 ; The IMMEDIATE flag's actual value.
-defconst F_IMMED, __F_IMMED, 0, 0x80
+defconst "F_IMMED", __F_IMMED, 0, 0x80
 
 ; const: F_HIDDEN    
 ; The HIDDEN flag's actual value.
-defconst F_HIDDEN, __F_HIDDEN, 0, 0x20
+defconst "F_HIDDEN", __F_HIDDEN, 0, 0x20
 
 ; const: F_LENMASK   
 ;The length mask in the flags/len byte.
-defconst F_LENMASK, __F_LENMASK, 0, 0x1f
+defconst "F_LENMASK", __F_LENMASK, 0, 0x1f
 
 
 ; ============================================================================
@@ -168,7 +168,7 @@ DOCOL:
 ; function: exit
 ;   exit is the last word of a defword (a non-defcode word). It restores the 
 ;   value of esi, stored in the return stack by DOCOL when this word started.
-defcode exit, exit, 0
+defcode "exit", exit, 0
         poprsp esi          ; Pops the address of the word to return to
         next                ; and executes it
 

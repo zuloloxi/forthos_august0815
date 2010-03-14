@@ -12,7 +12,7 @@ global forth_irq_handler
 
 ; function: irq_init
 ;   Initialize the IRQ handling.
-defcode irq_init, irq_init, 0
+defcode "irq_init", irq_init, 0
         ; Magic happens here
         mov al, 0x11
         out 0x20, al
@@ -45,7 +45,7 @@ defcode irq_init, irq_init, 0
 ;
 ; stack:
 ;  {isr info} -- {isr info} isr_no isr_err
-defcode isr_info, isr_info, 0
+defcode "isr_info", isr_info, 0
     mov eax, [esp + 64]
     push eax
     mov eax, [esp + 64]
@@ -57,7 +57,7 @@ defcode isr_info, isr_info, 0
 ;
 ; stack:
 ;   {isr info} -- {isr info}
-: irq_handler, irq_handler, 0
+: irq_handler
     isr_info swap drop  4 * isr_table + @
     dup 0<> if execute else drop then
 
@@ -71,7 +71,7 @@ defcode isr_info, isr_info, 0
 ;
 ; stack:
 ;   addr i --
-: register_isr_handler, register_isr_handler, 0
+: register_isr_handler
     4 *  isr_table + !
 ;
 

@@ -10,7 +10,7 @@
 
 %include "forth_macros.s"
 %include "forth_core.h"
-
+extern DOCOL
 extern name_exit
 %undef OLDLINK
 %xdefine LINK name_exit
@@ -21,7 +21,7 @@ extern name_exit
 
 ; function: stop
 ;   Endless loop.
-defcode stop, stop, 0
+defcode "stop", stop, 0
         jmp $
 
 
@@ -31,7 +31,7 @@ defcode stop, stop, 0
 ;
 ; Stack:
 ;   -- n
-defcode lit, lit, 0
+defcode "lit", lit, 0
         lodsd               ; Load the next word in the current definition
         push eax            ; pushes it on the stack
         next                ; and executes the following word
@@ -39,14 +39,14 @@ defcode lit, lit, 0
 ; function: drop 
 ; Stack:
 ;   n --
-defcode drop, drop,0
+defcode "drop", drop,0
         pop eax       
         next
 
 ; function: swap
 ; Stack:
 ;   a b -- b a
-defcode swap, swap,0
+defcode "swap", swap,0
         pop eax       
         pop ebx
         push eax
@@ -56,7 +56,7 @@ defcode swap, swap,0
 ; function: dup
 ; Stack:
 ;   a -- a a
-defcode dup, dup, 0
+defcode "dup", dup, 0
         mov eax, [esp]    
         push eax
         next
@@ -64,7 +64,7 @@ defcode dup, dup, 0
 ; function: over
 ; Stack:
 ;   a b -- a b a
-defcode over, over, 0
+defcode "over", over, 0
         mov eax, [esp + 4]   
         push eax      
         next
@@ -72,7 +72,7 @@ defcode over, over, 0
 ; function: rot
 ; Stack:
 ;   a b c -- b c a
-defcode rot, rot, 0
+defcode "rot", rot, 0
         pop eax
         pop ebx
         pop ecx
@@ -84,7 +84,7 @@ defcode rot, rot, 0
 ; function: -rot (nrot)
 ; Stack:
 ;   a b c -- c a b
-defcode -rot, nrot, 0
+defcode "-rot", nrot, 0
         pop eax
         pop ebx
         pop ecx
@@ -96,7 +96,7 @@ defcode -rot, nrot, 0
 ; function: 2drop (twodrop)
 ; Stack:
 ;   a b --
-defcode 2drop, twodrop, 0
+defcode "2drop", twodrop, 0
         pop eax
         pop eax
         next
@@ -104,7 +104,7 @@ defcode 2drop, twodrop, 0
 ; function: 2dup (twodup)
 ; Stack:
 ;   a b -- a b a b
-defcode 2dup, twodup, 0
+defcode "2dup", twodup, 0
         mov eax, [esp]
         mov ebx, [esp + 4]
         push ebx
@@ -114,7 +114,7 @@ defcode 2dup, twodup, 0
 ; function: 2swap (twoswap)
 ; Stack:
 ;   a b c d -- c d a b
-defcode 2swap, twoswap, 0
+defcode "2swap", twoswap, 0
         pop eax
         pop ebx
         pop ecx
@@ -131,7 +131,7 @@ defcode 2swap, twoswap, 0
 ; Stack:
 ;   0 --
 ;   n -- n
-defcode ?dup, qdup, 0
+defcode "?dup", qdup, 0
         mov eax, [esp]
         test eax, eax
         jz .1
@@ -141,35 +141,35 @@ defcode ?dup, qdup, 0
 ; function: 1+ (incr)
 ; Stack:
 ;   n -- n+1
-defcode 1+, incr, 0
+defcode "1+", incr, 0
         inc dword [esp]    
         next
 
 ; function: 1- (decr)
 ; Stack:
 ;   n -- n-1
-defcode 1-, decr, 0
+defcode "1-", decr, 0
         dec dword [esp]    
         next
 
 ; function: 4+ (incr4)
 ; Stack:
 ;   n -- n+4
-defcode 4+, incr4, 0
+defcode "4+", incr4, 0
         add dword [esp], 4     
         next
 
 ; function: 4- (decr4)
 ; Stack:
 ;   n -- n-4
-defcode 4-, decr4, 0
+defcode "4-", decr4, 0
         sub dword [esp], 4     
         next
 
 ; function: + (add)
 ; Stack:
 ;   a b -- a+b
-defcode +, add, 0
+defcode "+", add, 0
         pop eax       
         add [esp], eax   
         next
@@ -177,7 +177,7 @@ defcode +, add, 0
 ; function: - (sub)                                                             
 ; Stack:
 ;   a b -- b-a
-defcode -, sub, 0
+defcode "-", sub, 0
         pop eax       
         sub [esp], eax   
         next
@@ -185,7 +185,7 @@ defcode -, sub, 0
 ; function: * (mul)
 ; Stack:
 ;   a b -- a*b
-defcode *, mul, 0
+defcode "*", mul, 0
         pop eax
         pop ebx
         imul eax, ebx
@@ -201,7 +201,7 @@ defcode *, mul, 0
 ; function: /mod (divmod)
 ; Stack:
 ;   a b -- a%b a/b
-defcode /mod, divmod, 0
+defcode "/mod", divmod, 0
         xor edx, edx
         pop ebx
         pop eax
@@ -213,7 +213,7 @@ defcode /mod, divmod, 0
 ; function: / (div)
 ; Stack:
 ;   a b -- a/b
-defword /, div, 0
+defword "/", div, 0
         dd divmod
         dd swap
         dd drop
@@ -222,7 +222,7 @@ defword /, div, 0
 ; function: mod
 ; Stack:
 ;   a b -- a%b
-defword mod, mod, 0
+defword "mod", mod, 0
         dd divmod
         dd drop
         dd exit
@@ -231,7 +231,7 @@ defword mod, mod, 0
 ; function: = (equ)
 ; Stack:
 ;  n -- bool
-defcode =, equ, 0
+defcode "=", equ, 0
         pop eax
         pop ebx
         cmp eax, ebx
@@ -243,7 +243,7 @@ defcode =, equ, 0
 ; function: <> (nequ)
 ; Stack:
 ;  n -- bool
-defcode <>, nequ, 0
+defcode "<>", nequ, 0
         pop eax
         pop ebx
         cmp eax, ebx
@@ -255,7 +255,7 @@ defcode <>, nequ, 0
 ; function: < (lt)
 ; Stack:
 ;   n -- bool
-defcode <, lt, 0
+defcode "<", lt, 0
         pop eax
         pop ebx
         cmp ebx, eax
@@ -267,7 +267,7 @@ defcode <, lt, 0
 ; function: > (gt)
 ; Stack:
 ;   n -- bool
-defcode >, gt, 0
+defcode ">", gt, 0
         pop eax
         pop ebx
         cmp ebx, eax
@@ -279,7 +279,7 @@ defcode >, gt, 0
 ; function: <= (le)
 ; Stack:
 ;   n -- bool
-defcode <=, le, 0
+defcode "<=", le, 0
         pop eax
         pop ebx
         cmp ebx, eax
@@ -291,7 +291,7 @@ defcode <=, le, 0
 ; function: >= (ge)
 ; Stack:
 ;   n -- bool
-defcode >=, ge, 0
+defcode ">=", ge, 0
         pop eax
         pop ebx
         cmp ebx, eax
@@ -303,7 +303,7 @@ defcode >=, ge, 0
 ; function: 0= (zequ)
 ; Stack:
 ;   n -- bool
-defcode 0=, zequ, 0
+defcode "0=", zequ, 0
         pop eax
         test eax, eax
         setz al
@@ -314,7 +314,7 @@ defcode 0=, zequ, 0
 ; function: 0<> (znequ)
 ; Stack:
 ;  n -- bool
-defcode 0<>, znequ, 0
+defcode "0<>", znequ, 0
         pop eax
         test eax, eax
         setnz al
@@ -325,7 +325,7 @@ defcode 0<>, znequ, 0
 ; function: 0< (zlt)
 ; Stack:
 ;   n -- bool
-defcode 0<, zlt, 0
+defcode "0<", zlt, 0
         pop eax
         test eax, eax
         setl al
@@ -336,7 +336,7 @@ defcode 0<, zlt, 0
 ; function: 0> (zgt)
 ; Stack:
 ;   n -- bool
-defcode 0>, zgt, 0
+defcode "0>", zgt, 0
         pop eax
         test eax, eax
         setg al
@@ -347,7 +347,7 @@ defcode 0>, zgt, 0
 ; function: 0<= (zle)
 ; Stack:
 ;   n -- bool
-defcode 0<=, zle, 0
+defcode "0<=", zle, 0
         pop eax
         test eax, eax
         setle al
@@ -358,7 +358,7 @@ defcode 0<=, zle, 0
 ; function: 0>= (zge)
 ; Stack:
 ;   n -- bool
-defcode 0>=, zge, 0
+defcode "0>=", zge, 0
         pop eax
         test eax, eax
         setge al
@@ -369,7 +369,7 @@ defcode 0>=, zge, 0
 ; function: and
 ; Stack:
 ;   a b -- a&b
-defcode and, and, 0   
+defcode "and", and, 0   
         pop eax
         and [esp], eax
         next
@@ -377,7 +377,7 @@ defcode and, and, 0
 ; function: or
 ; Stack:
 ;   a b -- a|b
-defcode or, or, 0 
+defcode "or", or, 0 
         pop eax
         or [esp], eax
         next
@@ -385,7 +385,7 @@ defcode or, or, 0
 ; function: xor
 ; Stack:
 ;   a b -- (a xor b)
-defcode xor, xor, 0   
+defcode "xor", xor, 0   
         pop eax
         xor [esp], eax
         next
@@ -393,7 +393,7 @@ defcode xor, xor, 0
 ; function: invert
 ; Stack:
 ;   a -- !a
-defcode invert, invert, 0
+defcode "invert", invert, 0
         not dword [esp]
         next
 
@@ -402,7 +402,7 @@ defcode invert, invert, 0
 ;
 ; Stack:
 ;   n addr --
-defcode !, store, 0
+defcode "!", store, 0
         pop ebx       
         pop eax       
         mov [ebx], eax    
@@ -413,7 +413,7 @@ defcode !, store, 0
 ;
 ; Stack:
 ;   addr -- v
-defcode @, fetch, 0
+defcode "@", fetch, 0
         pop ebx       
         mov eax, [ebx]    
         push eax      
@@ -424,7 +424,7 @@ defcode @, fetch, 0
 ;
 ; Stack:
 ;   v addr --
-defcode +!, addstore, 0
+defcode "+!", addstore, 0
         pop ebx       
         pop eax       
         add [ebx], eax   
@@ -435,7 +435,7 @@ defcode +!, addstore, 0
 ;
 ; Stack:
 ;   v addr --
-defcode -!, substore, 0
+defcode "-!", substore, 0
         pop ebx       
         pop eax       
         sub [ebx], eax   
@@ -446,7 +446,7 @@ defcode -!, substore, 0
 ;
 ; Stack:
 ;   b addr --
-defcode c!, storebyte, 0
+defcode "c!", storebyte, 0
         pop ebx       
         pop eax       
         mov [ebx], al    
@@ -457,7 +457,7 @@ defcode c!, storebyte, 0
 ;
 ; Stack:
 ;   addr -- b
-defcode c@, fetchbyte, 0
+defcode "c@", fetchbyte, 0
         pop ebx       
         xor eax, eax
         mov al, [ebx]    
@@ -469,7 +469,7 @@ defcode c@, fetchbyte, 0
 ;
 ; Stack:
 ;   w addr --
-defcode w!, storeword, 0
+defcode "w!", storeword, 0
         pop ebx       
         pop eax       
         mov [ebx], ax    
@@ -480,7 +480,7 @@ defcode w!, storeword, 0
 ;
 ; Stack:
 ;   addr -- w
-defcode w@, fetchword, 0
+defcode "w@", fetchword, 0
         pop ebx       
         xor eax, eax
         mov ax, [ebx]    
@@ -492,7 +492,7 @@ defcode w@, fetchword, 0
 ;
 ; Stack:
 ;   &src &dst -- (&src+1) (&dst+1)
-defcode c@c!, ccopy, 0
+defcode "c@c!", ccopy, 0
         mov ebx, [esp + 4]  	;movl 4(%esp),%ebx	// source address
         mov al, [ebx]    		;movb (%ebx),%al		// get source character
         pop edi       			;pop %edi		// destination address
@@ -511,7 +511,7 @@ defcode c@c!, ccopy, 0
 ;   &s - Source Address
 ;   &d - Destination Address
 ;   n  - Number of bytes to copy
-defcode cmove, cmove, 0
+defcode "cmove", cmove, 0
         mov edx, esi      
         pop ecx       
         pop edi       
@@ -524,7 +524,7 @@ defcode cmove, cmove, 0
 ;
 ; Stack:
 ;   --
-defcode >r, tor, 0
+defcode ">r", tor, 0
         pop eax       
         pushrsp eax       
         next
@@ -533,7 +533,7 @@ defcode >r, tor, 0
 ;
 ; Stack:
 ;   --
-defcode r>, fromr, 0
+defcode "r>", fromr, 0
         poprsp eax    
         push eax      
         next
@@ -542,7 +542,7 @@ defcode r>, fromr, 0
 ;
 ; Stack:
 ;   --
-defcode rsp@, rspfetch, 0
+defcode "rsp@", rspfetch, 0
         push ebp
         next
 
@@ -551,7 +551,7 @@ defcode rsp@, rspfetch, 0
 ;
 ; Stack:
 ;   --
-defcode rsp!, rspstore, 0
+defcode "rsp!", rspstore, 0
         pop ebp
         next
 
@@ -559,7 +559,7 @@ defcode rsp!, rspstore, 0
 ;
 ; Stack:
 ;   --
-defcode rdrop, rdrop, 0
+defcode "rdrop", rdrop, 0
         add ebp, 4       
         next
 
@@ -574,7 +574,7 @@ defcode rdrop, rdrop, 0
 ;
 ; Stack:
 ;   --
-defcode branch, branch, 0
+defcode "branch", branch, 0
         add esi, [esi]
         next
 
@@ -587,7 +587,7 @@ defcode branch, branch, 0
 ;
 ; Stack:
 ;   n --
-defcode 0branch, zbranch, 0
+defcode "0branch", zbranch, 0
         pop eax
         test eax, eax
         jz code_branch 
@@ -600,7 +600,7 @@ defcode 0branch, zbranch, 0
 ;
 ; Stack:
 ;   --
-defcode dsp@, dspfetch, 0
+defcode "dsp@", dspfetch, 0
         mov eax, esp
         push eax
         next
@@ -609,7 +609,7 @@ defcode dsp@, dspfetch, 0
 ;
 ; Stack:
 ;   --
-defcode dsp!, dspstore, 0
+defcode "dsp!", dspstore, 0
         pop esp
         next
 
@@ -618,7 +618,7 @@ defcode dsp!, dspstore, 0
 ;
 ; Stack:
 ;   n1 n2 -- n1 << n2
-defcode shl, shl, 0
+defcode "shl", shl, 0
         pop ecx
         pop eax
         shl eax, cl
@@ -630,7 +630,7 @@ defcode shl, shl, 0
 ;
 ; Stack:
 ;   n1 n2 -- n1 >> n2
-defcode shr, shr, 0
+defcode "shr", shr, 0
         pop ecx
         pop eax
         shr eax, cl
@@ -642,7 +642,7 @@ defcode shr, shr, 0
 ;
 ; Stack:
 ;   b3b2b1b0 n -- bn
-defword n_byte, n_byte, 0
+defword "n_byte", n_byte, 0
         litn 8
         dd mul
         dd shr
@@ -652,21 +652,21 @@ defword n_byte, n_byte, 0
 
 ;-------------This Code is taken from bb4wforth.f---see--README-------
        
-defcode d+,  dadd, 0 ; added by rtr
+defcode "d+",  dadd, 0 ; added by rtr
         pop edx                 ; ms 32-bits
         pop eax                 ; ls 32-bits (forth is big-endian)
         add dword [esp+4],eax
         adc dword [esp],edx
         next
          
-defcode d-, dsub,0 ; added by rtr
+defcode "d-", dsub,0 ; added by rtr
         pop edx                 ; ms 32-bits
         pop eax                 ; ls 32-bits (forth is big-endian)
         sub dword [esp+4],eax
         sbb dword [esp],edx
         next
 
-defcode um/mod, umdivmod , 0 ; added by rtr (unsigned)
+defcode "um/mod", umdivmod , 0 ; added by rtr (unsigned)
         pop ebx
         pop edx
         pop eax
@@ -675,7 +675,7 @@ defcode um/mod, umdivmod , 0 ; added by rtr (unsigned)
         push eax                ; push quotient
         next
         
-defcode um*,  umul64 ,0  ; added by rtr
+defcode "um*",  umul64 ,0  ; added by rtr
         pop eax
         pop ebx
         mul ebx                 ; unsigned multiply
@@ -683,12 +683,12 @@ defcode um*,  umul64 ,0  ; added by rtr
         push edx                ; ms 32 bits
         next 
         
-defcode r@, rfetch, 0 ; added by rtr
+defcode "r@", rfetch, 0 ; added by rtr
         mov eax,[ebp]
         push eax
         next  
               
-defcode m*, mul64 ,0 ; added by rtr
+defcode "m*", mul64 ,0 ; added by rtr
         pop eax
         pop ebx
         imul ebx                ; signed multiply
@@ -696,7 +696,7 @@ defcode m*, mul64 ,0 ; added by rtr
         push edx                ; ms 32 bits
         next
         
-defcode sm/rem, smdivrem, 0 ; added by rtr (signed)
+defcode "sm/rem", smdivrem, 0 ; added by rtr (signed)
         pop ebx
         pop edx
         pop eax
@@ -705,7 +705,7 @@ defcode sm/rem, smdivrem, 0 ; added by rtr (signed)
         push eax                ; push quotient
         next
         
-defcode fm/mod, fmdivmod,0 ; added by rtr (floored)
+defcode "fm/mod", fmdivmod,0 ; added by rtr (floored)
         pop ebx
         pop edx
         pop eax
@@ -721,7 +721,7 @@ _fmmodx:
         push eax                ; push quotient
         next
         
-defcode */, muldiv,0 ; added by rtr
+defcode "*/", muldiv,0 ; added by rtr
         pop ecx
         pop ebx
         pop eax
@@ -730,7 +730,7 @@ defcode */, muldiv,0 ; added by rtr
         push eax
         next
         
-defcode */mod, muldivmod ,0 ; added by rtr
+defcode "*/mod", muldivmod ,0 ; added by rtr
         pop ecx
         pop ebx
         pop eax
@@ -740,19 +740,19 @@ defcode */mod, muldivmod ,0 ; added by rtr
         push eax                ; push quotient
         next
         
-defcode 2*, twomul, 0 ; added by rtr
+defcode "2*", twomul, 0 ; added by rtr
         shl dword [esp],1
         next
         
-defcode 2/, twodiv, 0 ; added by rtr
+defcode "2/", twodiv, 0 ; added by rtr
         sar dword [esp],1
         next
         
-defcode u2/, utwodiv,0 ; added by rtr
+defcode "u2/", utwodiv,0 ; added by rtr
         shr dword [esp],1
         next
 
-defcode u<, ult,0 ; added by rtr
+defcode "u<", ult,0 ; added by rtr
         pop eax
         pop ebx
         cmp ebx,eax
@@ -762,7 +762,7 @@ defcode u<, ult,0 ; added by rtr
         push eax
        next
   
- defcode u>, ugt,0 ; added by rtr
+defcode "u>", ugt,0 ; added by rtr
         pop eax
         pop ebx
         cmp ebx,eax
@@ -772,14 +772,14 @@ defcode u<, ult,0 ; added by rtr
         push eax
        next
 
-defcode s>d, stod,0   ; added by rtr
+defcode "s>d", stod,0   ; added by rtr
         pop eax
         cdq
         push eax                ; ls 32 bits (forth is big-endian)
         push edx                ; ms 32 bits
        next
         
-defcode roll, roll,0 ; added by rtr
+defcode "roll", roll,0 ; added by rtr
         pop ecx
         jecxz _roll_next
         lea edi,[esp+ecx*4]
@@ -794,7 +794,7 @@ defcode roll, roll,0 ; added by rtr
 _roll_next:
        next  
        
-defcode (does), does2, 0
+defcode "(does)", does2, 0
         lea ebp, [ebp-4]
         mov [ebp],esi
         pop esi
@@ -803,12 +803,12 @@ defcode (does), does2, 0
         next
         
 
-defcode leave, LEAVE, 0  ; added by rtr
+defcode "leave", LEAVE, 0  ; added by rtr
         lea ebp,[ebp+12]        ; pop return stack
         jmp _leave
         
         
-defcode ?do, qdo, 0 ; added by rtr
+defcode "?do", qdo, 0 ; added by rtr
         pop ecx                 ; initial index
         pop edx                 ; limit
         cmp ecx,edx
@@ -834,7 +834,7 @@ _qdo_loop:
         jnz _qdo_loop
         next
         
-defcode do,  DO, 0 ; added by rtr
+defcode "do",  DO, 0 ; added by rtr
         pop ecx                 ; initial index
         pop edx                 ; limit
 _dogo:
@@ -844,11 +844,11 @@ _dogo:
         mov [ebp],ecx
         next
         
-defcode +loop, ploop, 0 ; added by rtr
+defcode "+loop", ploop, 0 ; added by rtr
         pop eax                 ; step
         jmp _loop_step
         
-defcode loop, LOOP, 0 ; added by rtr
+defcode "loop", LOOP, 0 ; added by rtr
         mov eax,1               ; default step
 _loop_step:
         ;test byte [bflags],&81
@@ -864,16 +864,16 @@ _loop_step:
         mov esi,[ebp+8]
         next       ; continue looping
         
-defcode unloop, unloop, 0  ; added by rtr
+defcode "unloop", unloop, 0  ; added by rtr
 _unloop:
         lea ebp,[ebp+12]        ; pop return stack
         next       ; exit loop
         
-defcode I, I , 0 ; added by rtr
+defcode "I", I , 0 ; added by rtr
         push dword [ebp]        ; index
         next       ; exit loop
         
-defcode J, J, 0 ; added by rtr
+defcode "J", J, 0 ; added by rtr
         push dword [ebp+12]     ; outer index
         next       ; exit loop
 
@@ -884,7 +884,7 @@ defcode J, J, 0 ; added by rtr
 ;
 ; stack:
 ;   addr -- ??
-defcode execute, execute, 0
+defcode "execute", execute, 0
         pop eax
         jmp [eax]
         
