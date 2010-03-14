@@ -167,7 +167,7 @@ def translate_forth_def(line):
       The forth definition must start at the begining of line, and must have the
       following structure:
 
-          : name, label, flags
+          : name   -> defword "name", name, 0
 
     Where:
         name - The name of the forth word, as seen for other forth words.
@@ -177,12 +177,14 @@ def translate_forth_def(line):
 
     Params:
         line - The first line of a forth word definition
-
+		
     Returns:
         string - A line of text with the defword of the forth word being defined.
+        Stripping whitespace from end of line
     '''
-    'tmp = line[2:-1]'
-    defword = 'defword "' + line[2:-1] + '", ' + line[2:-1] + ', 0'
+    
+    tmp = line.strip()
+    defword = 'defword "' + tmp[2:] + '", ' + tmp[2:] + ', 0'
     return defword
 
 
