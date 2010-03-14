@@ -16,8 +16,8 @@ global main
 main:
 			mov [var_S0], esp 			; Save the initial data stack pointer in FORTH variable S0.
             mov ebp, return_stack_top   ; init the return stack
-            mov eax,point_HERE			; init HERE
-            mov dword [var_HERE],eax	;
+            mov eax,point_DP			; init DP
+            mov dword [var_DP],eax	;
             mov esi, cold_start         ; fist foth word to exec
             next
 
@@ -59,7 +59,7 @@ align 4096
 pad: 
 	resb 1024
 align 1024	
-point_HERE: resb 2048
+point_DP: resb 2048
 
 point: resb 363748
 global top

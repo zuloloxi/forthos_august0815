@@ -15,6 +15,11 @@ extern name_getchar
 %xdefine LINK name_getchar
 
 [BITS 32]
+
+: here
+	DP @
+;
+
 : print_scancode
     kbd_scancode dup intprint spc sc_to_c spc  emit cr
 ;
@@ -275,7 +280,7 @@ defword ">dfa", tdfa, 0
 defcode "head", head, 0
 	    pop     ecx            
         pop     edx            
-        mov     edi,    [var_HERE]
+        mov     edi,    [var_DP]
         mov     eax,    [var_LATEST]
         stosd                   
         ;xor     eax,    eax
@@ -288,9 +293,9 @@ defcode "head", head, 0
         pop     esi    
         lea edi,[edi+3]
         and     edi,    ~3
-        mov     eax,    [var_HERE]
+        mov     eax,    [var_DP]
         mov     [var_LATEST],   eax
-        mov     [var_HERE],     edi
+        mov     [var_DP],     edi
         next
 : header
 	wort head
@@ -313,9 +318,9 @@ defcode ",", comma, 0
 	call _COMMA
 	next
 _COMMA:
-  	mov edi,[var_HERE]	; HERE
+  	mov edi,[var_DP]	; DP
 	stosd			; Store it.
-	mov dword [var_HERE],edi	; HERE
+	mov dword [var_DP],edi	; DP
 	ret
 
 ; function: [ 

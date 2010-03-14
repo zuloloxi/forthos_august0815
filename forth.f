@@ -36,55 +36,55 @@
 ;
 : if immediate
 	' 0branch ,
-	HERE @
+	here
 	0 ,
 ;
 
 : then immediate
 	dup
-	HERE @ swap -
+	here  swap -
 	swap !
 ;
 
 : else immediate
 	' branch ,
-	HERE @
+	here
 	0 ,
 	swap
 	dup
-	HERE @ swap -
+	here swap -
 	swap !
 ;
 
 : begin immediate
-	HERE @
+	here
 ;
 
 : until immediate
 	' 0branch ,
-	HERE @ -
+	here -
 	,
 ;
 
 
 : again immediate
 	' branch ,
-	HERE @ -
+	here -
 	,
 ;
 
 : while immediate
 	' 0branch ,
-	HERE @
+	here
 	0 ,
 ;
 
 : repeat immediate
 	' branch ,
 	swap
-	HERE @ - ,
+	here - ,
 	dup
-	HERE @ swap -
+	here swap -
 	swap !
 ;
 
@@ -292,16 +292,16 @@
 ;
 
 
-: align HERE @ aligned HERE ! ;
+: align here aligned DP ! ;
 : c,
-	HERE @ c!
-	1 HERE +!
+	DP @ c!
+	1 DP +!
 ;
 
 : s" immediate		( -- addr len )
 	STATE @ if	( compiling? )
 		' litstring ,	( compile litstring )
-		HERE @		( save the address of the length word on the stack )
+		here		( save the address of the length word on the stack )
 		0 ,		( dummy length - we don't know what it is yet )
 		begin
 			key1 		( get next character of the string )
@@ -311,12 +311,12 @@
 		repeat
 		drop		( drop the double quote character at the end )
 		dup		( get the saved address of the length word )
-		HERE @ swap -	( calculate the length )
+		here swap -	( calculate the length )
 		4-		( subtract 4 (because we measured from the start of the length word) )
 		swap !		( and back-fill the length location )
 		align		( round up to next multiple of 4 bytes for the remaining code )
 	else		( immediate mode )
-		HERE @		( get the start address of the temporary space )
+		here		( get the start address of the temporary space )
 		begin
 			key1
 			dup '"' <>
@@ -325,8 +325,8 @@
 			1+		( increment address )
 		repeat
 		drop		( drop the final " character )
-		HERE @ -	( calculate the length )
-		HERE @		( push the start address )
+		here -	( calculate the length )
+		here		( push the start address )
 		swap 		( addr len )
 	then
 ;
@@ -357,8 +357,8 @@
 	' exit ,
 ;
 : allot		( n -- addr )
-	HERE @ swap	
-	HERE +!	
+	DP @ swap	
+	DP +!	
 ;
 : cells ( n -- n ) 4 * ;
 : variable
@@ -461,7 +461,7 @@
 : forget
 	wort find	( find the word, gets the dictionary entry address )
 	dup @ LATEST !	( set latest to point to the previous word )
-	HERE !		( and store here with the dictionary address )
+	DP !		( and store here with the dictionary address )
 ;
 
 : cfa>
@@ -484,7 +484,7 @@
 	cr
 	wort
 	find
-	HERE @	
+	here	
 	LATEST @	
 	begin
 		2 pick	
@@ -561,7 +561,7 @@
 
 : noname
 	0 0 head	
-	HERE @	
+	here	
 	DOCOL ,	
 	]
 ;
@@ -686,19 +686,19 @@
 
 : cstring	( addr len -- c-addr )
 	swap over	( len saddr len )
-	HERE @ swap	( len saddr daddr len )
+	here swap	( len saddr daddr len )
 	cmove		( len )
 
-	HERE @ +	( daddr+len )
+	here +	( daddr+len )
 	0 swap c!	( store terminating nul char )
 
-	HERE @ 		( push start address )
+	here 		( push start address )
 ;
 
 
 : unused	( -- n )
 	TOPMEM @		( get end of data segment according to the kernel )
-	HERE @		( get current position in data segment )
+	here		( get current position in data segment )
 	-
 	4 /		( returns number of cells )
 ;
@@ -743,13 +743,13 @@
 immediate ;
 
 alias (wort) wort ;
-alias (here) HERE ;
+
 alias (find) find ;
 alias (key) key1 ;
 
 hide depth ;
 hide .s ;
-hide HERE ;
+
 hide allot ;
 hide variable
 hide true ;
@@ -765,14 +765,14 @@ echoon ;
  create
   0 ,
 ;
-: here ( -- addr ) (here) @ ;
+
 
 
 
 : depth ( -- +n ) S0 @ 4- dsp@ - 4 / ;
 : .s ( -- ) S0 @ depth 1 ?do 4- dup @ . loop drop ;
 
-: allot ( n -- ) here + (here) ! ;
+: allot ( n -- ) here + DP ! ;
 
 : variable ( "<spaces>name" -- ) create 1 cells allot ;
 : count ( caddr1 -- caddr2 u ) dup c@ swap 1+ swap ;

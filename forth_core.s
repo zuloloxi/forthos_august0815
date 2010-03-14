@@ -58,9 +58,9 @@ extern main
 ; Is the interpreter executing code (0) or compiling (non-zero)?
 defvar "STATE", STATE, 0, 0
 
-; var: HERE        
+; var: DP        
 ; Points to the next free byte of memory.
-defvar "HERE", HERE, 0, 0
+defvar "DP", DP, 0, 0
 
 extern last_word
 ; var LATEST      
