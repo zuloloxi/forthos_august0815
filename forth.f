@@ -747,8 +747,6 @@ alias (wort) wort ;
 alias (find) find ;
 alias (key) key1 ;
 
-hide depth ;
-hide .s ;
 
 hide allot ;
 hide variable
@@ -757,20 +755,15 @@ hide find ;
 hide while ;
 hide repeat ;
 hide constant ;
-( HIDE ' ( LIT is identical ) ) ;
+
         
 
 echoon ;
-: <builds
- create
-  0 ,
-;
 
 
 
 
-: depth ( -- +n ) S0 @ 4- dsp@ - 4 / ;
-: .s ( -- ) S0 @ depth 1 ?do 4- dup @ . loop drop ;
+
 
 : allot ( n -- ) here + DP ! ;
 
@@ -780,12 +773,4 @@ echoon ;
 immediate ; 
 echoon ;
 wel ;
-LATEST here .s ;
-
-<builds a ;
-<builds b ;
-<builds c ;
-<builds d ;
-
-d c b a LATEST here .s ;
 
